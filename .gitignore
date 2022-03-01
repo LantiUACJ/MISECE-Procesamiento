@@ -1,2 +1,4 @@
 Lib/site-packages
 __pycache__/
+Primerproyecto/__pycache__
+Primerproyecto/migrations/__pycache__
