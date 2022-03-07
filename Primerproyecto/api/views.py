@@ -10,7 +10,7 @@ from django.db.models import Q
 from Aplicacion1.servicios import generarRequest, normalize, validateJSON
 import json
 import copy
-from api.models import TokensDiagnosticos, TokensDiagnosticosFrecuentes, TokensProcedures
+from api.models import TokensDiagnosticos, TokensDiagnosticosFrecuentes, TokensProcedures, Descripciones_y_sinonimos
 from Aplicacion1.servicios import generarRequest, normalize, validateJSON
 from nltk.tokenize import word_tokenize, sent_tokenize
 from nltk.corpus import stopwords

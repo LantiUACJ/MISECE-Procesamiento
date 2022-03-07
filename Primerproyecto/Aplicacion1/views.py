@@ -2,9 +2,9 @@ from django.shortcuts import render, get_object_or_404
 from django.http import JsonResponse
 from django.template.loader import render_to_string 
 from django.shortcuts import render
-from .models import ConceptS, DescriptionS, Synonyms, ConceptosNoEncontrados, ExtendedmaprefsetS
+from .models import ConceptS, DescriptionS, Synonyms, ConceptosNoEncontrados, ExtendedmaprefsetS, SynonymVotes
 from django.db.models import Q
-from api.models import TokensDiagnosticos, TokensProcedures
+from api.models import TokensDiagnosticos, TokensProcedures, Descripciones_y_sinonimos
 from .servicios import generarRequest, normalize, validateJSON
 from nltk.tokenize import word_tokenize, sent_tokenize
 from nltk.corpus import stopwords
@@ -101,6 +101,27 @@ def InicioView(request):
 	#pacientes = Paciente.objects.all()
 	#recurso = 'PruebaPOS'
 	recurso = 'TokensDiagnosticos'
+	recurso = 'nueva_tabla'
+
+	if (recurso == 'nueva_tabla'):
+		start_time = time.time()
+		concepto1 = ConceptS.objects.filter(active ="1") and ConceptS.objects.filter(category_id ="6")
+		print("concepto1.coun", concepto1.count())
+
+		for i in concepto1[0:0]:
+			desc = DescriptionS.objects.filter(conceptid = i.id)
+			for j in desc:
+				obj, created = Descripciones_y_sinonimos.objects.update_or_create(
+                        id = j.id,
+                        conceptid=j.conceptid,
+                        typeid=j.typeid,
+                        term=j.term,
+                        category_id=j.category_id,
+                        )
+			syn = SynonymVotes.objects.filter(level = "2") and SynonymVotes.objects.filter(like = 1)#level 2 y like 1
+			
+
+		print("estoy en nueva tabla")
 
 
 	if recurso == "conversion":#convertir los datos de notas clinicas en recursos bundle
@@ -246,6 +267,8 @@ def InicioView(request):
 			responseMA1 = copy.deepcopy(responseMA)
 			data=""
 
+
+
 	if (recurso == 'TokensDiagnosticos'):
 		with open("TextoLibreAdministracion.json", "r") as read_file:
 			try:
@@ -263,7 +286,7 @@ def InicioView(request):
 
 			start_time = time.time()
 			concepto1 = ConceptS.objects.filter(active ="1") and ConceptS.objects.filter(category_id ="6")
-			print("concepto1.coun", concepto1.count())
+			#print("concepto1.coun", concepto1.count())
 
 			for i in concepto1[0:0]:
 				desc = DescriptionS.objects.filter(conceptid = i.id)
@@ -275,12 +298,15 @@ def InicioView(request):
 					for k in filt_tokens:
 						TokensDiagnosticos.objects.create(token=k.lower(), id_descripcion=j.id, largo_palabras_termino=len(filt_tokens))
 						descAceptadas.append([k.lower(), j.id, len(filt_tokens)])
+			
+
 			sinonimos = Synonyms.objects.all()
 			for s in sinonimos:
 				tokens2 = [t for t in s.term.split()]
 				filt_tokens2 = [w.lower() for w in tokens2 if not w.lower() in stop_words]
 				for k2 in filt_tokens2:
 					TokensDiagnosticos.objects.create(token=k2.lower(), id_descripcion="s"+str(s.id), largo_palabras_termino=len(filt_tokens2))
+
 
 
 

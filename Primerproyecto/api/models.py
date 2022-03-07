@@ -18,3 +18,12 @@ class TokensProcedures(models.Model):
     token = models.CharField(max_length=255)
     id_descripcion = models.CharField(max_length=255)
     largo_palabras_termino = models.IntegerField()
+
+class Descripciones_y_sinonimos(models.Model):
+    id = models.CharField(max_length=18, primary_key=True)
+    conceptid = models.CharField(max_length=18)
+    typeid = models.CharField(max_length=18)
+    term = models.CharField(max_length=255)
+    category_id = models.IntegerField(blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
