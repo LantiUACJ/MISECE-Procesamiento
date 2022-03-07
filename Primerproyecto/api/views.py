@@ -899,7 +899,6 @@ def ProcesarBundleView(request):
 
 			 		#hacer match de concpetos encontrados con la frase original
 			 		frase_original = val['resource']['conclusion']
-			 		print("frase_original[-1]",frase_original[-1])
 			 		if frase_original[-1] != ".":
 			 			frase_original = frase_original + "."
 			 		if 'extension' in val['resource']:
@@ -1220,6 +1219,8 @@ def ProcesarDiagnosticReportView(request):
 							fraseFinal = fraseFinal + " "+ ProcesarOracion2(frases_status[1], indx_status, responseMA, start_time).capitalize()
 				"""
 		 		frase_original = responseMA['conclusion']
+		 		if frase_original[-1] != ".":
+		 			frase_original = frase_original + "."
 		 		if 'extension' in responseMA:
 			 			lista_conceptos_encontrados = responseMA['extension']
 			 			frase_con_ids = match_con_frase(frase_original, lista_conceptos_encontrados)
