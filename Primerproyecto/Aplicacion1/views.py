@@ -12,7 +12,7 @@ import json
 import copy
 import nltk
 import time
-import es_core_news_sm, es_core_news_md, es_core_news_lg
+import es_core_news_lg
 import spacy
 from spacy import displacy
 from negspacy.negation import Negex

@@ -27,6 +27,25 @@
                             "use" : "oficial",
                             "value" : "D002"
                              }],
+                      "conclusion" : ""
+                    }
+        }
+    ]
+}
+
+
+{
+    "resourceType": "Bundle",
+    "entry": [
+        {
+            "fullUrl": "DiagnosticReport/D001",
+            "resource": {
+                      "resourceType" : "DiagnosticReport",
+                      "subject" : { "reference" : "Patient/P001" },
+                      "identifier" : [{ 
+                            "use" : "oficial",
+                            "value" : "D002"
+                             }],
                       "conclusion" : "Paciente el cual lo encontramos en posicion semiflower, con posicion libremente escogida, con carraspera, neurologicamente consciente, orientado en tiempo, espacio y lugar. Cooperador con cabeza normocefalica, sin endostosis o exostosis, con ojos simetricos, pupilas normoreflectivas y conjuntivasanictericas, narinas permables, con conducto auditivo externo permeable, adecuada coloracion mucotegumentario y normohidratado con cuello cilindrico sin adenopatias, tiroides no palpable, sin pletora yugular, con torax normolinea con movimientos de amplexion y amplexion normales, ruidos cardiacos ritmicos de bajo tono e intensidad, con frecuencia cardiaca de 70 latidos por minuto, sin soplos o ruidos agregados en focos auscultados, campos pulmonares con murmullo vesicular conservado, no se auscultan crepitos, estertores o sibilancias a la auscultacion pulmonar. Abdomen plano, blando depresible no doloroso a la palacion superficial media o profunda en abdomen con peristaltismo presente, extremidades simetricas, integras, con pulsos perifericos de buen tono e intensidad, con llenados capilar menor a 2 segundos, sensibilidad conservada en ambas extremidades en con escala mrc s/5 en hemicuerpo izquierdo, 5/5 dercecho, rots ++ global."
                     }
         }
@@ -40,7 +59,7 @@
                             "use" : "oficial",
                             "value" : "D002"
                              }],
-                      "conclusion" : "Paciente el cual lo encontramos en posicion semiflower, con posicion libremente escogida, con carraspera, neurologicamente consciente, orientado en tiempo, espacio y lugar. Cooperador con cabeza normocefalica, sin endostosis o exostosis, con ojos simetricos, pupilas normoreflectivas y conjuntivasanictericas, narinas permables, con conducto auditivo externo permeable, adecuada coloracion mucotegumentario y normohidratado con cuello cilindrico sin adenopatias, tiroides no palpable, sin pletora yugular, con torax normolinea con movimientos de amplexion y amplexion normales, ruidos cardiacos ritmicos de bajo tono e intensidad, con frecuencia cardiaca de 70 latidos por minuto, sin soplos o ruidos agregados en focos auscultados, campos pulmonares con murmullo vesicular conservado, no se auscultan crepitos, estertores o sibilancias a la auscultacion pulmonar. Abdomen plano, blando depresible no doloroso a la palacion superficial media o profunda en abdomen con peristaltismo presente, extremidades simetricas, integras, con pulsos perifericos de buen tono e intensidad, con llenados capilar menor a 2 segundos, sensibilidad conservada en ambas extremidades en con escala mrc s/5 en hemicuerpo izquierdo, 5/5 dercecho, rots ++ global."
+                      "conclusion" : "ABDOMEN MUY DEPRESIBLE Y MUY DOLOROSO."
 }
 
 {
