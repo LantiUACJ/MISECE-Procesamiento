@@ -100,25 +100,46 @@ def Preprocesamiento(la_frase):
 def InicioView(request):
 	#pacientes = Paciente.objects.all()
 	#recurso = 'PruebaPOS'
-	recurso = 'TokensDiagnosticos'
+	#recurso = 'TokensDiagnosticos'
 	recurso = 'nueva_tabla'
+	#recurso = 'nueva_tabla_sinonimos'
+
+	if (recurso == 'nueva_tabla_sinonimos'):
+		start_time = time.time()
+
+		syn = SynonymVotes.objects.filter(level = "2") and SynonymVotes.objects.filter(like = 1)#level 2 y like 1
+		for sin in syn:
+			des_sin = Synonyms.objects.get(id = int(sin.synonym_id))
+			concepto_a_checar = ConceptS.objects.get(id = int(des_sin.conceptid))
+			if concepto_a_checar.category_id == 6:				
+				obj, created = Descripciones_y_sinonimos.objects.update_or_create(
+	                    id = des_sin.id,
+	                    conceptid=des_sin.conceptid,
+	                    typeid= "900000000000013009",
+	                    term=des_sin.term
+	                    )
+		print("---Creacion de tabla Descripciones y sinonimos con sinonimos %s seconds ---" % (time.time() - start_time))
+
+			
+
+		print("estoy en nueva tabla sinonimos")
 
 	if (recurso == 'nueva_tabla'):
 		start_time = time.time()
 		concepto1 = ConceptS.objects.filter(active ="1") and ConceptS.objects.filter(category_id ="6")
 		print("concepto1.coun", concepto1.count())
 
-		for i in concepto1[0:0]:
+		for i in concepto1[20000:40000]:#115484
 			desc = DescriptionS.objects.filter(conceptid = i.id)
 			for j in desc:
 				obj, created = Descripciones_y_sinonimos.objects.update_or_create(
                         id = j.id,
                         conceptid=j.conceptid,
                         typeid=j.typeid,
-                        term=j.term,
-                        category_id=j.category_id,
+                        term=j.term
                         )
-			syn = SynonymVotes.objects.filter(level = "2") and SynonymVotes.objects.filter(like = 1)#level 2 y like 1
+		print("---Creacion de tabla Descripciones y sinonimos %s seconds ---" % (time.time() - start_time))
+
 			
 
 		print("estoy en nueva tabla")

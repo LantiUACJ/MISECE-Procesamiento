@@ -24,6 +24,5 @@ class Descripciones_y_sinonimos(models.Model):
     conceptid = models.CharField(max_length=18)
     typeid = models.CharField(max_length=18)
     term = models.CharField(max_length=255)
-    category_id = models.IntegerField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
