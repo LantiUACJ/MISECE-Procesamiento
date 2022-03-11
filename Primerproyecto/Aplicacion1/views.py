@@ -320,7 +320,7 @@ def InicioView(request):
 															TokensDiagnosticos.objects.create(token=k.lower(), id_descripcion=j.id, largo_palabras_termino=len(filt_tokens))
 															descAceptadas.append([k.lower(), j.id, len(filt_tokens)])"""
 
-			for i in concepto1[20000:30000]:#115484
+			for i in concepto1[0:0]:#115484
 				desc = Descripciones_y_sinonimos.objects.filter(conceptid = i.id)
 				for j in desc:
 					#print(j.term)
