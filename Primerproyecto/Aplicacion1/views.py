@@ -100,8 +100,8 @@ def Preprocesamiento(la_frase):
 def InicioView(request):
 	#pacientes = Paciente.objects.all()
 	#recurso = 'PruebaPOS'
-	recurso = 'TokensDiagnosticos'
-	#recurso = 'nueva_tabla'
+	#recurso = 'TokensDiagnosticos'
+	recurso = 'nueva_tabla'
 	#recurso = 'nueva_tabla_sinonimos'
 
 	if (recurso == 'nueva_tabla_sinonimos'):
@@ -129,15 +129,21 @@ def InicioView(request):
 		concepto1 = ConceptS.objects.filter(active ="1") and ConceptS.objects.filter(category_id ="6")
 		print("concepto1.coun", concepto1.count())
 
-		for i in concepto1[115000:115484]:#115484
-			desc = DescriptionS.objects.filter(conceptid = i.id)
-			for j in desc:
-				obj, created = Descripciones_y_sinonimos.objects.update_or_create(
-                        id = j.id,
-                        conceptid=j.conceptid,
-                        typeid=j.typeid,
-                        term=j.term
-                        )
+		for i in concepto1[0:0]:#115484
+									desc = DescriptionS.objects.filter(conceptid = i.id, active="1")
+									for j in desc:
+										obj, created = Descripciones_y_sinonimos.objects.update_or_create(
+						                        id = j.id,
+						                        conceptid=j.conceptid,
+						                        typeid=j.typeid,
+						                        term=j.term
+						                        )
+
+		for row in Descripciones_y_sinonimos.objects.all().reverse():
+			if Descripciones_y_sinonimos.objects.filter(conceptid=row.conceptid, typeid=row.typeid, term=row.term).count() > 1:
+				print("se borro")
+				row.delete()
+
 		print("---Creacion de tabla Descripciones y sinonimos %s seconds ---" % (time.time() - start_time))
 
 			

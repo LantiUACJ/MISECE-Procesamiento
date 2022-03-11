@@ -243,7 +243,7 @@ def ProcesarOracion2(frasePrueba, indexP, val, start_time):
 	descSeguncon =[]
 	for conc in conceptos:
 		esta=0
-		descripciones = DescriptionS.objects.filter(conceptid = str(conc[0]))
+		descripciones = Descripciones_y_sinonimos.objects.filter(conceptid = str(conc[0]))
 		for descripcion in descripciones:
 			if str(descripcion.term).lower() in str(frasePrueba).lower():
 				esta=1
@@ -290,7 +290,7 @@ def ProcesarOracion2(frasePrueba, indexP, val, start_time):
 	conta = 0
 	con_id=[]
 	for indxconc3, conc3 in enumerate(conceptos3):
-		descripciones = DescriptionS.objects.filter(conceptid = str(conc3))
+		descripciones = Descripciones_y_sinonimos.objects.filter(conceptid = str(conc3))
 		for descripcion in descripciones:
 			if str(descripcion.term).lower() in str(frasePrueba).lower():
 				conta=conta+1
@@ -301,7 +301,7 @@ def ProcesarOracion2(frasePrueba, indexP, val, start_time):
 				indice_final = indice_inicial + len(descripcion.term)
 				print("descripcion.term ", descripcion.term)
 				
-				FSN = DescriptionS.objects.get(conceptid = str(conc3), typeid = "900000000000003001", active = "1")
+				FSN = Descripciones_y_sinonimos.objects.get(conceptid = str(conc3), typeid = "900000000000003001")
 				con_id.append([str(conc3), descripcion.term, FSN.term])
 				frasePrueba2 = frasePrueba2[:(indice_final)] + ' <<'+FSN.id+'>>' + frasePrueba2[(indice_final):]
 	#print("--- %s seconds etapa 10 ---" % (time.time() - start_time))
@@ -345,7 +345,7 @@ def ProcesarOracion2(frasePrueba, indexP, val, start_time):
 	#-----------Guardar tokens de los conceptos encontrados en la frase
 	descAceptadas=[]
 	for i in conceptos3:
-		desc = DescriptionS.objects.filter(conceptid = i)
+		desc = Descripciones_y_sinonimos.objects.filter(conceptid = i)
 		for j in desc:
 			#print(j.term)
 			tokens = [t for t in j.term.split()]
@@ -442,7 +442,7 @@ def ProcesarOracionFrecuentes(frasePrueba, indexP, val, start_time):
 	# ---------EXTRAER CONCEPTOS DE ACUARDO A LAS DESCRIPCIONES
 	conceptos = []
 	for term in termino_correct_sin_repetido:
-		desc = DescriptionS.objects.filter(id =int(term))
+		desc = Descripciones_y_sinonimos.objects.filter(id =int(term))
 		conceptos.append([desc[0].conceptid, ])
 	data=""
 	#print("--- %s seconds etapa 7 bd frecuentes---" % (time.time() - start_time))
@@ -453,7 +453,7 @@ def ProcesarOracionFrecuentes(frasePrueba, indexP, val, start_time):
 	descSeguncon =[]
 	for conc in conceptos:
 		esta=0
-		descripciones = DescriptionS.objects.filter(conceptid = str(conc[0]))
+		descripciones = Descripciones_y_sinonimos.objects.filter(conceptid = str(conc[0]))
 		for descripcion in descripciones:
 			if str(descripcion.term).lower() in str(frasePrueba).lower():
 				esta=1
@@ -502,7 +502,7 @@ def ProcesarOracionFrecuentes(frasePrueba, indexP, val, start_time):
 	con_id=[]
 
 	for indxconc3, conc3 in enumerate(conceptos3):
-		descripciones = DescriptionS.objects.filter(conceptid = str(conc3))
+		descripciones = Descripciones_y_sinonimos.objects.filter(conceptid = str(conc3))
 		for descripcion in descripciones:
 			if str(descripcion.term).lower() in str(frasePrueba).lower():
 				conta=conta+1
@@ -511,7 +511,7 @@ def ProcesarOracionFrecuentes(frasePrueba, indexP, val, start_time):
 				indice_inicial = str(frasePrueba2).lower().find(str(descripcion.term).lower())
 				#print("indice_inicial", indice_inicial)
 				indice_final = indice_inicial + len(descripcion.term)
-				FSN = DescriptionS.objects.get(conceptid = str(conc3), typeid = "900000000000003001", active = "1")
+				FSN = Descripciones_y_sinonimos.objects.get(conceptid = str(conc3), typeid = "900000000000003001")
 				con_id.append([str(conc3), descripcion.term, FSN.term])
 				frasePrueba2 = frasePrueba2[:(indice_final)] + ' <<'+FSN.conceptid+'>>' + frasePrueba2[(indice_final):]
 	#print("--- %s seconds etapa 10 bd frecuentes---" % (time.time() - start_time))
