@@ -162,18 +162,9 @@ def Preprocesamiento(indx, la_frase):
 def ProcesarOracion2(frasePrueba, indexP, val, start_time):
 	# ---------TOKENIZAR POR PALABRAS LA FRASE A PROCESAR
 	stop_words = set(stopwords.words("spanish"))
-	#nlp = spacy.load('es_core_news_sm')  
-	#doc=nlp(frasePrueba)
-	#print([(w.text, w.pos_, w.dep_) for w in doc])
-	#print("doc", doc)
-	#sub_toks = [tok for tok in doc if (tok.dep_ == "nsubj") ]
-	#print("sub_toks", sub_toks) 
-	
-	#print("fraseprueba en procesar oracion 2", frasePrueba)
 	tokens_palabras = word_tokenize(frasePrueba)#tokenizo por palabras la frase del texto libre
 	#print("--- %s seconds etapa 1 ---" % (time.time() - start_time))
 	# ---------ELIMINAR STOPWORDS Y SUJETO DE ORACION
-	#tokens_palabras = [w for w in tokens_palabras if not w in sub_toks]
 	filt_frasePrueba = [w for w in tokens_palabras if not w in stop_words]# se quitan las stopwords de los tokens(palabras)
 	#print("--- %s seconds etapa 2 ---" % (time.time() - start_time))
 
@@ -201,7 +192,6 @@ def ProcesarOracion2(frasePrueba, indexP, val, start_time):
 	
 	ar = numpy.asarray(id_terminos_de_token)
 	ar2 = copy.deepcopy(ar)
-	# id_terminos_de_token2 = copy.deepcopy(id_terminos_de_token)
 	cont = 0
 	contador = 1
 	contador2 = 0
@@ -223,7 +213,6 @@ def ProcesarOracion2(frasePrueba, indexP, val, start_time):
 	#print("--- %s seconds etapa 5 ---" % (time.time() - start_time))
 
 	# ---------ELIMINAR REPETIDOS GENERADOS EN EL PROCESO INMEDIATO ANTERIOR
-	#termino_correcto2 = copy.deepcopy(termino_correcto)
 	termino_correct_sin_repetido=[]
 	for term in termino_correcto:
 		if term[0] not in termino_correct_sin_repetido:
@@ -260,10 +249,8 @@ def ProcesarOracion2(frasePrueba, indexP, val, start_time):
 			if b == 1:
 				agregar = 1
 		if agregar == 1:
-			#print("entre en agregar ", indexB)
 			conceptos2.append(conceptos[indexB])
 	#print("--- %s seconds etapa 8 ---" % (time.time() - start_time))
-
 
 	# ---------ELIMINAR CONCEPTOS QUE ESTAN CONTENIDO EN CONCEPTOS CON UNA DESCRIPCION MAYOR
 	conceptos3=[]
@@ -285,7 +272,6 @@ def ProcesarOracion2(frasePrueba, indexP, val, start_time):
 	aumento=0
 	#print("--- %s seconds etapa 9 ---" % (time.time() - start_time))
 
-
 	# ---------AÑADIR ENTRE GUIONES MEDIOS, LOS FSN DE LOS CONCEPTOS FINALES ENCONTRADOS
 	conta = 0
 	con_id=[]
@@ -297,7 +283,6 @@ def ProcesarOracion2(frasePrueba, indexP, val, start_time):
 				if indxconc3 == 0:
 					frasePrueba2 = copy.deepcopy(frasePrueba)
 				indice_inicial = str(frasePrueba2).lower().find(str(descripcion.term).lower())
-				#print("indice_inicial", indice_inicial)
 				indice_final = indice_inicial + len(descripcion.term)
 				print("descripcion.term ", descripcion.term)
 				
@@ -305,7 +290,6 @@ def ProcesarOracion2(frasePrueba, indexP, val, start_time):
 				con_id.append([str(conc3), descripcion.term, FSN.term])
 				frasePrueba2 = frasePrueba2[:(indice_final)] + ' <<'+FSN.id+'>>' + frasePrueba2[(indice_final):]
 	#print("--- %s seconds etapa 10 ---" % (time.time() - start_time))
-
 
 	# ---------AÑADIR PROPIEDAD "EXTENSION" AL JSON PARA MOSTRAR CUANTOS CONCEPTOS SE ENCONTRARON Y SU ID		
 	if "fullUrl" in val:		
@@ -347,9 +331,7 @@ def ProcesarOracion2(frasePrueba, indexP, val, start_time):
 	for i in conceptos3:
 		desc = Descripciones_y_sinonimos.objects.filter(conceptid = i)
 		for j in desc:
-			#print(j.term)
 			tokens = [t for t in j.term.split()]
-			#tokens = word_tokenize(j.term)
 			filt_tokens = [w.lower() for w in tokens if not w.lower() in stop_words]
 			for k in filt_tokens:
 				p, created = TokensDiagnosticosFrecuentes.objects.get_or_create(
@@ -357,9 +339,6 @@ def ProcesarOracion2(frasePrueba, indexP, val, start_time):
 			    id_descripcion=j.id,
 			    largo_palabras_termino=len(filt_tokens))
 				descAceptadas.append([k.lower(), j.id, len(filt_tokens)])
-	#print("descAceptadas", descAceptadas)
-	
-
 	if frasePrueba2 == "":
 		return [indexP, frasePrueba, 1]
 	else:
