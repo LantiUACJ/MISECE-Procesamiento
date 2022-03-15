@@ -1095,41 +1095,17 @@ def ProcesarDiagnosticReportView(request):
 				  else:
 				    frase2 = frase2 + " "+ item[1].capitalize()
 		 		frasePrueba = copy.deepcopy(frase2)
-		 		#----preprocesamiento de POS (part of Speech)			 		
-		 		"""frase2 = ""
-		 				 				 				 		while(frasePrueba != frase2):
-		 				 				 				 			if frase2 == "":
-		 				 				 				 				frase2 = Preprocesamiento(frasePrueba)
-		 				 				 				 			else:
-		 				 				 				 				frasePrueba = copy.deepcopy(frase2)
-		 				 				 				 				frase2 = Preprocesamiento(frasePrueba)
-		 				 				 				 		frasePrueba = copy.deepcopy(frase2)"""
-
-		 		#-----Fin preprocesamiento de POS
+		 		
 		 		frasePrueba = frasePrueba.replace(', ', '. ').lower()
 		 		tokens_frases = sent_tokenize(frasePrueba)
-		 		#print("len(tokens_frases)", len(tokens_frases))
-		 		#print("tokens_frases", tokens_frases)
+		 		
 		 		fraseFinal = ""
-		 		#----Procesamiento sin preprocesamiento de frases Frecuentes
-		 		"""
-		 		if tokens_frases:
-		 			for indx, frases in enumerate(tokens_frases):
-		 				if indx == 0:
-		 					fraseFinal = fraseFinal + ProcesarOracion2(frases, indx, responseMA, start_time).capitalize()
-		 				else:
-		 					fraseFinal = fraseFinal + " "+ ProcesarOracion2(frases, indx, responseMA, start_time).capitalize()
-		 				#ProcesarOracion2(frases, indx, responseMA)
-		 		"""
+		 		
 		 		status_frases = []
 		 		try:
 			 		if tokens_frases:
 			 			status_frases = Parallel(n_jobs=-1, prefer="threads")(delayed(ProcesarOracionFrecuentes)(frases, indx, responseMA, start_time) for indx, frases in enumerate(tokens_frases))
-			 			"""for indx, frases in enumerate(tokens_frases):
-			 				status_frases.append(ProcesarOracionFrecuentes(frases, indx, responseMA, start_time))
-			 			"""
-
-			 				#ProcesarOracion2(frases, indx, responseMA)
+			 			
 			 		lista_unos = [i2 for indx2, i2 in enumerate(status_frases) if i2[2] == 1]
 			 		lista_final = []
 			 		print("lista_unos", lista_unos)
@@ -1143,19 +1119,7 @@ def ProcesarDiagnosticReportView(request):
 			 		    fraseFinal = fraseFinal + item[1].capitalize()
 			 		  else:
 			 		    fraseFinal = fraseFinal + " "+ item[1].capitalize()
-			 		"""
-					for indx_status, frases_status in enumerate(status_frases):
-						if indx_status == 0:
-							if frases_status[2] == 1:
-								fraseFinal = fraseFinal + frases_status[1].capitalize()
-							if frases_status[2] == 0:
-								fraseFinal = fraseFinal + ProcesarOracion2(frases_status[1], indx_status, responseMA, start_time).capitalize()
-						else:
-							if frases_status[2] == 1:
-								fraseFinal = fraseFinal + " "+ frases_status[1].capitalize()
-							if frases_status[2] == 0:
-								fraseFinal = fraseFinal + " "+ ProcesarOracion2(frases_status[1], indx_status, responseMA, start_time).capitalize()
-					"""
+			 		
 		 		except:
 		 			pass
 
@@ -1167,12 +1131,7 @@ def ProcesarDiagnosticReportView(request):
 				 			lista_conceptos_encontrados = responseMA['ConceptosSNOMED']
 				 			frase_con_ids = match_con_frase(frase_original, lista_conceptos_encontrados)
 				 			responseMA.update( {"conclusion": frase_con_ids} )
-			 		#print("type(conceptos_entontrados) = ", type(lista_conceptos_encontrados))
 			 		
-			 		#print("frase_con_ids", frase_con_ids)
-			 		#responseMA.update( {"conclusion2": fraseFinal} )
-			 		
-			 		#responseMA.update( {"conclusion3": frase_con_ids} )
 			print("--- %s seconds Resource DiagnosticReport alone ---" % (time.time() - start_time))	
 			return Response(responseMA)
 		else:
