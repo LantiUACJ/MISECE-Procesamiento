@@ -311,15 +311,15 @@ def ProcesarOracion2(frasePrueba, indexP, val, start_time):
 	if "fullUrl" in val:		
 		if len(con_id) >= 1:
 			for item in con_id:
-				if "extension" not in val['resource']:
-					val['resource'].update( {"extension": [{
+				if "ConceptosSNOMED" not in val['resource']:
+					val['resource'].update( {"ConceptosSNOMED": [{
 					"url" : "codeSNOMEDActivo "+str(indexP),
 					"id" : item[0],
 					"text" : item[1],
 					"FSN" : item[2]
 					}]} )
 				else:
-					val['resource']["extension"].append( {
+					val['resource']["ConceptosSNOMED"].append( {
 					"url" : "codeSNOMEDActivo "+str(indexP),
 					"id" : item[0],
 					"text" : item[1],
@@ -328,15 +328,15 @@ def ProcesarOracion2(frasePrueba, indexP, val, start_time):
 	else:
 		if len(con_id) >= 1:
 			for item in con_id:
-				if "extension" not in val:
-					val.update( {"extension": [{
+				if "ConceptosSNOMED" not in val:
+					val.update( {"ConceptosSNOMED": [{
 					"url" : "codeSNOMEDActivo "+str(indexP),
 					"id" : item[0],
 					"text" : item[1],
 					"FSN" : item[2]
 					}]} )
 				else:
-					val["extension"].append( {
+					val["ConceptosSNOMED"].append( {
 					"url" : "codeSNOMEDActivo "+str(indexP),
 					"id" : item[0],
 					"text" : item[1],
@@ -526,15 +526,15 @@ def ProcesarOracionFrecuentes(frasePrueba, indexP, val, start_time):
 	if "fullUrl" in val:		
 		if len(con_id) >= 1:
 			for item in con_id:
-				if "extension" not in val['resource']:
-					val['resource'].update( {"extension": [{
+				if "ConceptosSNOMED" not in val['resource']:
+					val['resource'].update( {"ConceptosSNOMED": [{
 					"url" : "codeSNOMEDActivo "+str(indexP),
 					"id" : item[0],
 					"text" : item[1],
 					"FSN" : item[2]
 					}]} )
 				else:
-					val['resource']["extension"].append( {
+					val['resource']["ConceptosSNOMED"].append( {
 					"url" : "codeSNOMEDActivo "+str(indexP),
 					"id" : item[0],
 					"text" : item[1],
@@ -543,15 +543,15 @@ def ProcesarOracionFrecuentes(frasePrueba, indexP, val, start_time):
 	else:
 		if len(con_id) >= 1:
 			for item in con_id:
-				if "extension" not in val:
-					val.update( {"extension": [{
+				if "ConceptosSNOMED" not in val:
+					val.update( {"ConceptosSNOMED": [{
 					"url" : "codeSNOMEDActivo "+str(indexP),
 					"id" : item[0],
 					"text" : item[1],
 					"FSN" : item[2]
 					}]} )
 				else:
-					val["extension"].append( {
+					val["ConceptosSNOMED"].append( {
 					"url" : "codeSNOMEDActivo "+str(indexP),
 					"id" : item[0],
 					"text" : item[1],
@@ -905,8 +905,8 @@ def ProcesarBundleView(request):
 				 		frase_original = val['resource']['conclusion']
 				 		if frase_original[-1] != ".":
 				 			frase_original = frase_original + "."
-				 		if 'extension' in val['resource']:
-				 			lista_conceptos_encontrados = val['resource']['extension']
+				 		if 'ConceptosSNOMED' in val['resource']:
+				 			lista_conceptos_encontrados = val['resource']['ConceptosSNOMED']
 				 			frase_con_ids = match_con_frase(frase_original, lista_conceptos_encontrados)
 				 			val['resource'].update( {"conclusion": frase_con_ids} )
 				 		#print("type(conceptos_entontrados) = ", type(lista_conceptos_encontrados))
@@ -1230,8 +1230,8 @@ def ProcesarDiagnosticReportView(request):
 			 		frase_original = responseMA['conclusion']
 			 		if frase_original[-1] != ".":
 			 			frase_original = frase_original + "."
-			 		if 'extension' in responseMA:
-				 			lista_conceptos_encontrados = responseMA['extension']
+			 		if 'ConceptosSNOMED' in responseMA:
+				 			lista_conceptos_encontrados = responseMA['ConceptosSNOMED']
 				 			frase_con_ids = match_con_frase(frase_original, lista_conceptos_encontrados)
 				 			responseMA.update( {"conclusion": frase_con_ids} )
 			 		#print("type(conceptos_entontrados) = ", type(lista_conceptos_encontrados))
