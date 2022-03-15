@@ -532,8 +532,7 @@ def ProcesarBundleView(request):
 	print(responseMA)
 	if (responseMA):
 		recurso = responseMA['resourceType']
-	#print("recurso = ", recurso)
-	
+		
 		if (recurso == 'Bundle'):
 		 start_time = time.time()
 		 responseMA = request.data
