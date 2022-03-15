@@ -1081,13 +1081,13 @@ def ProcesarDiagnosticReportView(request):
 					 			if not existe:
 					 				ConceptosNoEncontrados.objects.create(concepto = conclusionCode)
 			if 'conclusion' in responseMA:
-		 		#frasePrueba = normalize(responseMA['conclusion']).lower()
+		 		
 		 		frasePrueba = responseMA['conclusion'].lower()
 		 		stop_words = set(stopwords.words("spanish"))
 		 		frase2 = ""
 		 		tokens_frases1 = sent_tokenize(frasePrueba)
 		 		frases_preprocesadas = Parallel(n_jobs=-1, prefer="threads")(delayed(Preprocesamiento)(indx, frases) for indx, frases in enumerate(tokens_frases1))
-		 		#print("frases_preprocesadas", frases_preprocesadas)
+		 		
 		 		frases_preprocesada_ordenada = Sort_0(frases_preprocesadas)
 		 		for indx4, item in enumerate(frases_preprocesada_ordenada):
 				  if indx4 == 0:
