@@ -141,7 +141,6 @@ def InicioView(request):
 
 		for row in Descripciones_y_sinonimos.objects.all().reverse():
 			if Descripciones_y_sinonimos.objects.filter(conceptid=row.conceptid, typeid=row.typeid, term=row.term).count() > 1:
-				print("se borro")
 				row.delete()
 
 		print("---Creacion de tabla Descripciones y sinonimos %s seconds ---" % (time.time() - start_time))
