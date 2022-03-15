@@ -16,7 +16,7 @@ from nltk.tokenize import word_tokenize, sent_tokenize
 from nltk.corpus import stopwords
 import nltk
 import time
-import es_core_news_sm, es_core_news_lg
+import es_core_news_lg
 import numpy
 import spacy
 import threading
@@ -837,7 +837,7 @@ def ProcesarBundleView(request):
 			 					 					 					 		frasePrueba = copy.deepcopy(frase2)"""
 
 			 		#-----Fin preprocesamiento de POS
-			 		frasePrueba = frasePrueba.replace(',', '.').lower()
+			 		frasePrueba = frasePrueba.replace(', ', '. ').lower()
 
 			 		tokens_frases = sent_tokenize(frasePrueba)
 			 		print("len(tokens_frases)", len(tokens_frases))
@@ -1173,7 +1173,7 @@ def ProcesarDiagnosticReportView(request):
 		 				 				 				 		frasePrueba = copy.deepcopy(frase2)"""
 
 		 		#-----Fin preprocesamiento de POS
-		 		frasePrueba = frasePrueba.replace(',', '.').lower()
+		 		frasePrueba = frasePrueba.replace(', ', '. ').lower()
 		 		tokens_frases = sent_tokenize(frasePrueba)
 		 		#print("len(tokens_frases)", len(tokens_frases))
 		 		#print("tokens_frases", tokens_frases)
@@ -1223,10 +1223,10 @@ def ProcesarDiagnosticReportView(request):
 							if frases_status[2] == 0:
 								fraseFinal = fraseFinal + " "+ ProcesarOracion2(frases_status[1], indx_status, responseMA, start_time).capitalize()
 					"""
-				except:
-					pass
+		 		except:
+		 			pass
 
-				if len(status_frases) != 0:
+		 		if len(status_frases) != 0:
 			 		frase_original = responseMA['conclusion']
 			 		if frase_original[-1] != ".":
 			 			frase_original = frase_original + "."
