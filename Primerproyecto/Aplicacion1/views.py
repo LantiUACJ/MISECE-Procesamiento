@@ -32,13 +32,13 @@ def Sort(sub_li):
 
 def Preprocesamiento(la_frase):
 	nlp = spacy.load('es_core_news_lg')
-	#frase = "El paciente está orientado en tiempo y lugar"
+	
 	frase = la_frase
 	document = nlp(frase)
 	prev_prev_el = ""
 	prev_el=""
 	ele=""
-	print("la_frase", la_frase)
+	
 
 	for index, token in enumerate(list(document)):
 		print(token.lemma_, token.pos_, token.dep_)
@@ -50,7 +50,6 @@ def Preprocesamiento(la_frase):
 				adjective2 = str(list(document)[::][index+3])
 				frase_nueva = noun +" "+ adjective2
 				indice_frase_ori = frase.find(str(list(document)[::][index+3]))
-				print("frase_nueva = ", frase_nueva)
 				frase = frase.replace(str(list(document)[::][index+3]),frase_nueva)
 				break
 			if (document[::][index].pos_ == "PROPN" or document[::][index].pos_ == "NOUN" or document[::][index].pos_ == "ADV") and document[::][index+1].pos_ == "ADJ" and document[::][index+2].lemma_ == "," and document[::][index+3].pos_ == "ADJ":
@@ -58,19 +57,11 @@ def Preprocesamiento(la_frase):
 				adjective2 = str(list(document)[::][index+3])
 				frase_nueva = noun +" "+ adjective2
 				indice_frase_ori = frase.find(str(list(document)[::][index+3]))
-				print("frase_nueva = ", frase_nueva)
 				frase = frase.replace(str(list(document)[::][index+3]),frase_nueva)
 				break
 		if index == 0 or index == 1:
 			continue
-		#if (index+2 < len(list(document)[::])):
-		#	prev_el = str(list(document)[::][index-1])
-		#	prev_prev_el = str(list(document)[::][index-2])
-		#	ele = str(list(document)[::][index])
-		#print("prev_prev_el: "+ prev_prev_el+ ", "+document[::][index-2].pos_)
-		#print("prev_el: ", prev_el+ ", "+document[::][index-1].pos_)
-		#print("elemento: ", ele+ ", "+document[::][index].pos_)
-		#print()
+		
 
 		if index+2 < len(list(document)):
 			if document[::][index-2].pos_ == "ADJ" and document[::][index-1].pos_ == "ADP" and (document[::][index].pos_ == "NOUN" or document[::][index].pos_ == "PROPN") and document[::][index+1].pos_ == "CCONJ" and (document[::][index+2].pos_ == "NOUN" or document[::][index+2].pos_ == "PROPN"):

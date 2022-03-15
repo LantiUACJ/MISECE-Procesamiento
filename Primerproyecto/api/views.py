@@ -40,7 +40,6 @@ def Sort_4(sub_li):
 	return sub_li
 
 def match_con_frase(frase_original, lista_conceptos_encontrados):
-	print("entre en funcion de match")
 	l = lista_conceptos_encontrados
 	frase_original = frase_original.lower()
 	for i in l:
@@ -49,9 +48,7 @@ def match_con_frase(frase_original, lista_conceptos_encontrados):
 		elif " (trastorno)" in i["text"]:
 			i["text"]= i["text"].replace(" (trastorno)", "")
 		words = i["text"].split()
-		print("words[-1]", words[-1])
 		buscar = words[-1]+" "
-		print("buscar", buscar)
 		if frase_original.rfind((words[-1]+" ").lower()) != -1:
 			frase_original = frase_original.replace((words[-1]+" "), (("→"+words[-1]+" ")))
 			indice_final_frase = frase_original.rfind((words[-1]+" ").lower())+len(words[-1])
@@ -68,9 +65,7 @@ def match_con_frase(frase_original, lista_conceptos_encontrados):
 			frase_original = frase_original.replace((words[-1]+")"), (("→"+words[-1]+")")))
 			indice_final_frase = frase_original.rfind((words[-1]+")").lower())+len(words[-1])
 			frase_original = frase_original[:indice_final_frase] + "<<"+i["id"]+">>" +frase_original[indice_final_frase:]
-		#indice_final_frase = frase_original.rfind(words[-1]+" ")+len(words[-1])
 		
-		#print("indice_final_frase", indice_final_frase)
 	frase_con_ids = frase_original
 	return frase_con_ids
 
@@ -85,34 +80,29 @@ def Preprocesamiento(indx, la_frase):
 	frase2=""
 	while frase != frase2:
 		if frase != frase2:		
-			print(frase)	
 			frase2 = copy.deepcopy(frase)
 			document = nlp(frase2)
 			for index, token in enumerate(list(document)):
 				#-------- Tipo postponer-----------
 				if index+3 < len(list(document)):
 					if (document[::][index].pos_ == "PROPN" or document[::][index].pos_ == "NOUN" or document[::][index].pos_ == "ADV" or document[::][index].pos_ == "PRON" ) and document[::][index+1].pos_ == "ADJ" and document[::][index+2].pos_ == "CCONJ" and document[::][index+3].pos_ == "ADJ":
-						print("if uno")
+						
 						noun = str(list(document)[::][index])
 						adjective2 = str(list(document)[::][index+3])
 						frase_nueva = noun +" "+ adjective2
 						indice_frase_ori = frase.find(str(list(document)[::][index+3]))
-						#print("frase_nueva = ", frase_nueva)
 						frase = frase.replace(str(list(document)[::][index+3]),frase_nueva)
 						
 					if (document[::][index].pos_ == "PROPN" or document[::][index].pos_ == "NOUN" or document[::][index].pos_ == "ADV" or document[::][index].pos_ == "PRON" ) and document[::][index+1].pos_ == "ADJ" and document[::][index+2].lemma_ == "," and document[::][index+3].pos_ == "ADJ":
-						print("if dos")
 						noun = str(list(document)[::][index])
 						adjective2 = str(list(document)[::][index+3])
 						frase_nueva = noun +" "+ adjective2
 						indice_frase_ori = frase.find(str(list(document)[::][index+3]))
-						#print("frase_nueva = ", frase_nueva)
 						frase = frase.replace(str(list(document)[::][index+3]),frase_nueva)
 										
 				#------------------Tipo postponer con modificador (muy, mas y tan)
 				if index+5 < len(list(document)):
 					if (document[::][index].pos_ == "PROPN" or document[::][index].pos_ == "NOUN" or document[::][index].pos_ == "ADV" or document[::][index].pos_ == "PRON") and document[::][index+1].pos_ == "ADV" and document[::][index+2].pos_ == "ADJ" and document[::][index+3].pos_ == "CCONJ" and document[::][index+4].pos_ == "ADV" and document[::][index+5].pos_ == "ADJ":
-						print("if tres")
 						noun = str(list(document)[::][index])
 						conjuncion= " "+ str(list(document)[::][index+3]) + " "
 						adverb2 = str(list(document)[::][index+4])
@@ -123,7 +113,6 @@ def Preprocesamiento(indx, la_frase):
 						#frase = frase.replace(str(list(document)[::][index+5]),frase_nueva)
 						
 					if (document[::][index].pos_ == "PROPN" or document[::][index].pos_ == "NOUN" or document[::][index].pos_ == "ADV" or document[::][index].pos_ == "PRON") and document[::][index+1].pos_ == "ADV" and document[::][index+2].pos_ == "ADJ" and document[::][index+3].pos_ == "PUNCT" and document[::][index+4].pos_ == "ADV" and document[::][index+5].pos_ == "ADJ":
-						print("if cuatro")
 						noun = str(list(document)[::][index])
 						conjuncion= str(list(document)[::][index+3]) + " "
 						adverb2 = str(list(document)[::][index+4])
@@ -136,17 +125,13 @@ def Preprocesamiento(indx, la_frase):
 				#-------- Tipo anteponer entre preposicion-----------
 				if index+2 < len(list(document)):
 					if document[::][index-2].pos_ == "ADJ" and document[::][index-1].pos_ == "ADP" and (document[::][index].pos_ == "NOUN" or document[::][index].pos_ == "PROPN" or document[::][index].pos_ == "PRON") and document[::][index+1].pos_ == "CCONJ" and (document[::][index+2].pos_ == "NOUN" or document[::][index+2].pos_ == "PROPN"):
-						print("if cinco")
 						adjective = str(list(document)[::][index-2])
 						adposition = str(list(document)[::][index-1])
 						frase_nueva = adjective+ " "+adposition + " "+ str(list(document)[::][index+2])
-
 						indice_frase_original = frase.find(str(list(document)[::][index+2])) #encontrar indicie del segundo NOUN
-			
 						frase = frase.replace(str(list(document)[::][index+2]),frase_nueva)
 					
 					if document[::][index-2].pos_ == "ADJ" and document[::][index-1].pos_ == "ADP" and (document[::][index].pos_ == "NOUN" or document[::][index].pos_ == "PROPN" or document[::][index].pos_ == "PRON") and document[::][index+1].lemma_ == "," and (document[::][index+2].pos_ == "NOUN" or document[::][index+2].pos_ == "PROPN"):
-						print("if seis")
 						adjective = str(list(document)[::][index-2])
 						adposition = str(list(document)[::][index-1])
 						frase_nueva = adjective+ " "+adposition + " "+ str(list(document)[::][index+2])
@@ -260,7 +245,6 @@ def ProcesarOracion2(frasePrueba, indexP, val, start_time):
 		for elitem2 in descSeguncon[::-1]:
 			if elitem1 != elitem2:
 				if elitem2[2] >=  elitem1[2] and elitem2[2] <= elitem1[3] and elitem2[3] > elitem1[2] and elitem2[3] <= elitem1[3]:
-					#print("elitem2 = "+elitem2[0]+" esta en elitem1 = "+elitem1[0])
 					if elitem2 in descSeguncon:
 						descSeguncon.remove(elitem2)
 
@@ -284,8 +268,6 @@ def ProcesarOracion2(frasePrueba, indexP, val, start_time):
 					frasePrueba2 = copy.deepcopy(frasePrueba)
 				indice_inicial = str(frasePrueba2).lower().find(str(descripcion.term).lower())
 				indice_final = indice_inicial + len(descripcion.term)
-				print("descripcion.term ", descripcion.term)
-				
 				FSN = Descripciones_y_sinonimos.objects.get(conceptid = str(conc3), typeid = "900000000000003001")
 				con_id.append([str(conc3), descripcion.term, FSN.term])
 				frasePrueba2 = frasePrueba2[:(indice_final)] + ' <<'+FSN.id+'>>' + frasePrueba2[(indice_final):]
@@ -347,7 +329,6 @@ def ProcesarOracion2(frasePrueba, indexP, val, start_time):
 def ProcesarOracionFrecuentes(frasePrueba, indexP, val, start_time):
 	# ---------TOKENIZAR POR PALABRAS LA FRASE A PROCESAR
 	stop_words = set(stopwords.words("spanish"))
-	print("fraseprueba en procesar oracion frecuentes", frasePrueba)
 	tokens_palabras = word_tokenize(frasePrueba)#tokenizo por palabras la frase del texto libre
 	# ---------ELIMINAR STOPWORDS Y SUJETOS (NSUBJ)
 	filt_frasePrueba = [w for w in tokens_palabras if not w in stop_words]# se quitan las stopwords de los tokens(palabras)
@@ -463,7 +444,6 @@ def ProcesarOracionFrecuentes(frasePrueba, indexP, val, start_time):
 				if indxconc3 == 0:
 					frasePrueba2 = copy.deepcopy(frasePrueba)
 				indice_inicial = str(frasePrueba2).lower().find(str(descripcion.term).lower())
-				#print("indice_inicial", indice_inicial)
 				indice_final = indice_inicial + len(descripcion.term)
 				FSN = Descripciones_y_sinonimos.objects.get(conceptid = str(conc3), typeid = "900000000000003001")
 				con_id.append([str(conc3), descripcion.term, FSN.term])
@@ -529,7 +509,6 @@ def apiOverview(request):
 @api_view(['POST'])
 def ProcesarBundleView(request):
 	responseMA = request.data
-	print(responseMA)
 	if (responseMA):
 		recurso = responseMA['resourceType']
 		
@@ -635,7 +614,6 @@ def ProcesarBundleView(request):
 			 					}]} ) 
 			 				existe = ConceptosNoEncontrados.objects.filter(concepto = metodo).first()
 				 			if not existe:
-				 				print("entre en if not existe de administracion con metodo = "+ metodo)
 				 				ConceptosNoEncontrados.objects.create(concepto = metodo)
 
 			 	if 'dosage' in val['resource']:
@@ -661,7 +639,7 @@ def ProcesarBundleView(request):
 			 					"url" : "rutaSNOMEDActivo",
 			 					"text" : descripciones[0].conceptid
 			 					} ) 
-			 					print(val['resource']['extension'])
+			 					
 			 				else:
 			 					val['resource']['extension'].append({
 			 					"url" : "rutaSNOMEDInactivo",
@@ -744,11 +722,10 @@ def ProcesarBundleView(request):
 			 		stop_words = set(stopwords.words("spanish"))
 			 		frase2 = ""
 			 		tokens_frases1 = sent_tokenize(frasePrueba)
-			 		#print("tokens_frase1", tokens_frases1)
+			 		
 			 		frases_preprocesadas = Parallel(n_jobs=-1, prefer="threads")(delayed(Preprocesamiento)(indx, frases) for indx, frases in enumerate(tokens_frases1))
 			 		
 			 		frases_preprocesada_ordenada = Sort_0(frases_preprocesadas)
-			 		#print("frases_preprocesada_ordenada", frases_preprocesada_ordenada)
 			 		for indx4, item in enumerate(frases_preprocesada_ordenada):
 					  if indx4 == 0:
 					    frase2 = frase2 + item[1].capitalize()
@@ -758,7 +735,6 @@ def ProcesarBundleView(request):
 			 		frasePrueba = frasePrueba.replace(', ', '. ').lower()
 
 			 		tokens_frases = sent_tokenize(frasePrueba)
-			 		print("len(tokens_frases)", len(tokens_frases))
 			 		fraseFinal = ""
 			 		
 			 		status_frases = []
@@ -1043,10 +1019,8 @@ def ProcesarDiagnosticReportView(request):
 			 			
 			 		lista_unos = [i2 for indx2, i2 in enumerate(status_frases) if i2[2] == 1]
 			 		lista_final = []
-			 		print("lista_unos", lista_unos)
 			 		lista_final = Parallel(n_jobs=-1, prefer="threads")(delayed(ProcesarOracion2)(i[1], indx, responseMA, start_time) for indx, i in enumerate(status_frases) if i[2] == 0)
 			 		lista_unida = lista_unos + lista_final
-			 		print("lista_unida", lista_unida)
 			 		lista_unida = Sort_0(lista_unida)
 
 			 		for indx3, item in enumerate(lista_unida):
@@ -1189,7 +1163,6 @@ def ProcesarMedicationAdministrationView(request):
 		 					}]} ) 
 		 				existe = ConceptosNoEncontrados.objects.filter(concepto = metodo).first()
 			 			if not existe:
-			 				#print("entre en if not existe de administracion con metodo = "+ metodo)
 			 				ConceptosNoEncontrados.objects.create(concepto = metodo)
 
 			if 'dosage' in responseMA:
@@ -1215,7 +1188,7 @@ def ProcesarMedicationAdministrationView(request):
 		 					"url" : "rutaSNOMEDActivo",
 		 					"text" : descripciones[0].conceptid
 		 					} ) 
-		 					print(responseMA['extension'])
+		 					
 		 				else:
 		 					responseMA['extension'].append({
 		 					"url" : "rutaSNOMEDInactivo",
@@ -1265,13 +1238,13 @@ def ProcesarProcedureView(request):
 				 			con = ConceptS.objects.get(id = i.conceptid)
 				 			if con.active == '0':
 				 				descripciones = descripciones.exclude(id=i.id)
-				 			#print(i.term, i.conceptid, con.active)
+				 			
 					if sinonimos.count() > 1:
 			 			for i in sinonimos:
 				 			con = ConceptS.objects.get(id = i.conceptid)
 				 			if con.active == '0':
 				 				sinonimos = sinonimos.exclude(id=i.id)
-				 			#print(i.term, i.conceptid, con.active)
+				 			
 					if descripciones:
 		 				concepto = ConceptS.objects.get(id = descripciones[0].conceptid)
 		 				if concepto.active == '1':
@@ -1380,13 +1353,13 @@ def ProcesarObservationView(request):
 				 			con = ConceptS.objects.get(id = i.conceptid)
 				 			if con.active == '0':
 				 				descripciones = descripciones.exclude(id=i.id)
-				 			#print(i.term, i.conceptid, con.active)
+				 			
 					if sinonimos.count() > 1:
 			 			for i in sinonimos:
 				 			con = ConceptS.objects.get(id = i.conceptid)
 				 			if con.active == '0':
 				 				sinonimos = sinonimos.exclude(id=i.id)
-				 			#print(i.term, i.conceptid, con.active)
+				 			
 					if descripciones:
 			 			concepto = ConceptS.objects.get(id = descripciones[0].conceptid)
 			 			if concepto.active == '1':
