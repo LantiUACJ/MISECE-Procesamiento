@@ -138,7 +138,7 @@ def InicioView(request):
 
 			
 
-		print("estoy en nueva tabla")
+		
 
 
 	if recurso == "conversion":#convertir los datos de notas clinicas en recursos bundle
