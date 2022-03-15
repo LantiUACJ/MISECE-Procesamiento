@@ -543,8 +543,6 @@ def ProcesarBundleView(request):
 		 		if 'code' in val['resource']:
 		 			if 'text' in val['resource']['code']:
 		 				data = normalize(val['resource']['code']['text'])
-				 		#data = normalize(val['resource']['code'].encode("latin-1").decode("utf-8"))
-			 			#data = normalize(val['resource']['code'])
 				 		descripciones = DescriptionS.objects.filter(term = data) & DescriptionS.objects.filter(category_id = 10)
 				 		sinonimos = Synonyms.objects.filter(term = data)
 				 		if descripciones.count() > 1:
@@ -758,49 +756,21 @@ def ProcesarBundleView(request):
 					  else:
 					    frase2 = frase2 + " "+ item[1].capitalize()
 			 		frasePrueba = copy.deepcopy(frase2)
-
-			 		#----preprocesamiento de POS (part of Speech)			 		
-			 		"""frase2 = ""
-			 					 					 					 		while(frasePrueba != frase2):
-			 					 					 					 			if frase2 == "":
-			 					 					 					 				frase2 = Preprocesamiento(frasePrueba)
-			 					 					 					 			else:
-			 					 					 					 				frasePrueba = copy.deepcopy(frase2)
-			 					 					 					 				frase2 = Preprocesamiento(frasePrueba)
-			 					 					 					 		frasePrueba = copy.deepcopy(frase2)"""
-
-			 		#-----Fin preprocesamiento de POS
 			 		frasePrueba = frasePrueba.replace(', ', '. ').lower()
 
 			 		tokens_frases = sent_tokenize(frasePrueba)
 			 		print("len(tokens_frases)", len(tokens_frases))
 			 		fraseFinal = ""
-			 		#----Procesamiento sin preprocesamiento de frases Frecuentes
-			 		"""
-			 		if tokens_frases:
-			 			for indx, frases in enumerate(tokens_frases):
-			 				if indx == 0:
-			 					fraseFinal = fraseFinal + ProcesarOracion2(frases, indx, val, start_time).capitalize()
-			 				else:
-			 					fraseFinal = fraseFinal + " "+ ProcesarOracion2(frases, indx, val, start_time).capitalize()
-			 				#ProcesarOracion2(frases, indx, val)
-			 		"""
+			 		
 			 		status_frases = []
 			 		try:
 				 		if tokens_frases:
 				 			status_frases = Parallel(n_jobs=-1, prefer="threads")(delayed(ProcesarOracionFrecuentes)(frases, indx, val, start_time) for indx, frases in enumerate(tokens_frases))
-				 			#for indx, frases in enumerate(tokens_frases):
-				 			#	status_frases.append(ProcesarOracionFrecuentes(frases, indx, val, start_time))
-
-				 				#ProcesarOracion2(frases, indx, val)
-				 			#print("status_frases", status_frases)
-
+				 			
 				 		lista_unos = [i2 for indx2, i2 in enumerate(status_frases) if i2[2] == 1]
 				 		lista_final = []
-				 		#print("lista_unos", lista_unos)
 				 		lista_final = Parallel(n_jobs=-1, prefer="threads")(delayed(ProcesarOracion2)(i[1], indx, val, start_time) for indx, i in enumerate(status_frases) if i[2] == 0)
 				 		lista_unida = lista_unos + lista_final
-				 		#print("lista_unida", lista_unida)
 				 		lista_unida = Sort_0(lista_unida)
 
 				 		for indx3, item in enumerate(lista_unida):
@@ -808,29 +778,7 @@ def ProcesarBundleView(request):
 						    fraseFinal = fraseFinal + item[1].capitalize()
 						  else:
 						    fraseFinal = fraseFinal + " "+ item[1].capitalize()
-				 		
-				 		"""
-				 		for indx_status, frases_status in enumerate(status_frases):
-				 			if indx_status == 0:
-				 				if frases_status[2] == 1:
-				 					fraseFinal = fraseFinal + frases_status[1].capitalize()
-				 				if frases_status[2] == 0:
-				 					fraseFinal = fraseFinal + ProcesarOracion2(frases_status[1], indx_status, val, start_time).capitalize()
-				 			else:
-				 				if frases_status[2] == 1:
-				 					fraseFinal = fraseFinal + " "+ frases_status[1].capitalize()
-				 				if frases_status[2] == 0:
-				 					fraseFinal = fraseFinal + " "+ ProcesarOracion2(frases_status[1], indx_status, val, start_time).capitalize()
-				 		
-						"""
-				 		#-----------------------------multiprocesamiento
-				 		"""
-				 		pool = multiprocessing.Pool(processes=multiprocessing.cpu_count())
-				 		resultados = pool.map(partial(ProcesarOracion2, indexP=1, val = val, start_time = start_time), status_frases[])
-				 		print("resultados", resultados)
-				 		"""
-
-				 		#hacer match de concpetos encontrados con la frase original
+				 						 		
 				 	except:
 				 		pass
 
@@ -842,14 +790,7 @@ def ProcesarBundleView(request):
 				 			lista_conceptos_encontrados = val['resource']['ConceptosSNOMED']
 				 			frase_con_ids = match_con_frase(frase_original, lista_conceptos_encontrados)
 				 			val['resource'].update( {"conclusion": frase_con_ids} )
-				 		#print("type(conceptos_entontrados) = ", type(lista_conceptos_encontrados))
-				 		#print("conceptos_entontrados = ", lista_conceptos_encontrados)
 				 		
-				 		#print("frase_con_ids", frase_con_ids)
-				 		#val['resource'].update( {"conclusion2": fraseFinal} )
-				 		#val['resource'].update( {"conclusion3": frase_con_ids} )
-			 		
-
 			 	print("--- %s seconds Resource DiagnosticReport ---" % (time.time() - start_time))	
 
 		 	if "Procedure" == val['resource']['resourceType']:
@@ -863,13 +804,13 @@ def ProcesarBundleView(request):
 					 			con = ConceptS.objects.get(id = i.conceptid)
 					 			if con.active == '0':
 					 				descripciones = descripciones.exclude(id=i.id)
-					 			#print(i.term, i.conceptid, con.active)
+					 			
 					 	if sinonimos.count() > 1:
 				 			for i in sinonimos:
 					 			con = ConceptS.objects.get(id = i.conceptid)
 					 			if con.active == '0':
 					 				sinonimos = sinonimos.exclude(id=i.id)
-					 			#print(i.term, i.conceptid, con.active)
+					 			
 			 			if descripciones:
 			 				concepto = ConceptS.objects.get(id = descripciones[0].conceptid)
 			 				if concepto.active == '1':
@@ -910,11 +851,7 @@ def ProcesarBundleView(request):
 		 			for categ in val['resource']['category']:
 		 				if 'text' in categ:
 		 					categoria = normalize(categ['text'])
-		 					#categoria = normalize(val['resource']['category'].encode("latin-1").decode("utf-8"))
-							#categoria = normalize(cod['display'])
-					 		#categoria = normalize(val['resource']['category'].encode("latin-1").decode("utf-8"))
-					 		#categoria = normalize(val['resource']['category'])
-					 		descripciones = DescriptionS.objects.filter(term = categoria)
+		 					descripciones = DescriptionS.objects.filter(term = categoria)
 					 		sinonimos = Synonyms.objects.filter(term = categoria)
 					 		if descripciones.count() > 1:
 					 			for i in descripciones:
@@ -962,7 +899,6 @@ def ProcesarBundleView(request):
 		 		if 'code' in val['resource']:
 		 			if 'text' in val['resource']['code']:
 		 				code = normalize(val['resource']['code']['text'])					 				
-				 		#code = normalize(val['resource']['code'])
 				 		descripciones = DescriptionS.objects.filter(term = code)
 				 		sinonimos = Synonyms.objects.filter(term = code)
 				 		if descripciones.count() > 1:
@@ -970,13 +906,13 @@ def ProcesarBundleView(request):
 					 			con = ConceptS.objects.get(id = i.conceptid)
 					 			if con.active == '0':
 					 				descripciones = descripciones.exclude(id=i.id)
-					 			#print(i.term, i.conceptid, con.active)
+					 			
 					 	if sinonimos.count() > 1:
 				 			for i in sinonimos:
 					 			con = ConceptS.objects.get(id = i.conceptid)
 					 			if con.active == '0':
 					 				sinonimos = sinonimos.exclude(id=i.id)
-					 			#print(i.term, i.conceptid, con.active)
+					 			
 					 	if descripciones:
 				 			concepto = ConceptS.objects.get(id = descripciones[0].conceptid)
 				 			if concepto.active == '1':
