@@ -369,35 +369,21 @@ def ProcesarOracionFrecuentes(frasePrueba, indexP, val, start_time):
 	# ---------TOKENIZAR POR PALABRAS LA FRASE A PROCESAR
 	stop_words = set(stopwords.words("spanish"))
 	print("fraseprueba en procesar oracion frecuentes", frasePrueba)
-	#nlp = spacy.load('es_core_news_sm')  
-	#doc=nlp(frasePrueba)
-	#print([(w.text, w.pos_, w.dep_) for w in doc])
-	#print("doc", doc)
-	#sub_toks = [tok for tok in doc if (tok.dep_ == "nsubj") ]
-	#print("sub_toks", sub_toks) 
 	tokens_palabras = word_tokenize(frasePrueba)#tokenizo por palabras la frase del texto libre
-	#print("--- %s seconds etapa 1 de bd frecuentes---" % (time.time() - start_time))
 	# ---------ELIMINAR STOPWORDS Y SUJETOS (NSUBJ)
-	#tokens_palabras = [w for w in tokens_palabras if not w in sub_toks]
 	filt_frasePrueba = [w for w in tokens_palabras if not w in stop_words]# se quitan las stopwords de los tokens(palabras)
-	#print("--- %s seconds etapa 2 bd frecuentes---" % (time.time() - start_time))
-
-
 	# ---------GENERAR LISTA ANIDADA POR CADA TOKEN = [ID_DESCRIPCION, LARGO_PALABRAS]
 	id_terminos_de_token=[]
 	bd_tokens = TokensDiagnosticosFrecuentes.objects.raw("SELECT * FROM `api_tokensdiagnosticosfrecuentes` WHERE token IN %s", [tuple(filt_frasePrueba)])
-	#bd_tokens = TokensDiagnosticos.objects.raw("SELECT * FROM `api_tokensdiagnosticos` WHERE token IN %s", [tuple(filt_frasePrueba)])
+	
 	arfil = numpy.asarray(filt_frasePrueba)
 	for indx, i in enumerate(arfil):#por cada token en la frase
 		id_terminos_de_token.append([])
 		for j in bd_tokens:#por cada token en la bd
 			if j.token == i and j.largo_palabras_termino <=  len(filt_frasePrueba):#si token de frase esta en token de la instancia de la bd
-				#id_terminos_de_token[indx].append([j.id_descripcion, j.largo_palabras_termino, j.token])#añado id de la descripcion que continee el token de la frase
 				id_terminos_de_token[indx].append([int(j.id_descripcion), j.largo_palabras_termino])#añado id de la descripcion que continee el token de la frase
 	max=0
 	#print("--- %s seconds etapa 3 bd frecuentes---" % (time.time() - start_time))
-
-
 	# ---------ELIMINAR DESCRIPCIONES QUE TENGAN MAS PALABRAS QUE LA DE LA FRASE A PROCESAR, ORDENAR CADA LISTA ANIDADA DE CADA TOKEN DE LARGO DE PALABRAS EN DESCRIPCION DE MANERA DESCENDENTE
 	for term in id_terminos_de_token:
 		Sort(term)	   
@@ -408,7 +394,7 @@ def ProcesarOracionFrecuentes(frasePrueba, indexP, val, start_time):
 	
 	ar = numpy.asarray(id_terminos_de_token)
 	ar2 = copy.deepcopy(ar)
-	# id_terminos_de_token2 = copy.deepcopy(id_terminos_de_token)
+	
 	contador = 1
 	contador2 = 0
 	cont=0
@@ -426,18 +412,14 @@ def ProcesarOracionFrecuentes(frasePrueba, indexP, val, start_time):
 					termino_correcto.append(tupla)
 		if contador != ar.size:
 			contador = contador + 1
-
 	#print("--- %s seconds etapa 5 bd frecuentes---" % (time.time() - start_time))
 
-
 	# ---------ELIMINAR REPETIDOS GENERADOS EN EL PROCESO INMEDIATO ANTERIOR
-	#termino_correcto2 = copy.deepcopy(termino_correcto)
 	termino_correct_sin_repetido=[]
 	for term in termino_correcto:
 		if term[0] not in termino_correct_sin_repetido:
 			termino_correct_sin_repetido.append(term[0])
 	#print("--- %s seconds etapa 6 bd frecuentes ---" % (time.time() - start_time))
-
 
 	# ---------EXTRAER CONCEPTOS DE ACUARDO A LAS DESCRIPCIONES
 	conceptos = []
@@ -446,7 +428,6 @@ def ProcesarOracionFrecuentes(frasePrueba, indexP, val, start_time):
 		conceptos.append([desc[0].conceptid, ])
 	data=""
 	#print("--- %s seconds etapa 7 bd frecuentes---" % (time.time() - start_time))
-
 
 	#---------VERIFICACION SI EL ORDEN DE PALABRAS EN LA DESCRIPCION Y FRASE ESTA TAL CUAL DE MANERA VCONSECUTIVA
 	BooleanTalCual =[]
@@ -460,7 +441,6 @@ def ProcesarOracionFrecuentes(frasePrueba, indexP, val, start_time):
 				indice_inicial = str(frasePrueba).lower().find(str(descripcion.term).lower())
 				indice_final = indice_inicial + len(descripcion.term)
 				descSeguncon.append([descripcion.term, conc[0], indice_inicial, indice_final, len(descripcion.term)])
-
 		BooleanTalCual.append(esta)
 	
 	conceptos2 = []
@@ -471,11 +451,8 @@ def ProcesarOracionFrecuentes(frasePrueba, indexP, val, start_time):
 			if b == 1:
 				agregar = 1
 		if agregar == 1:
-			#print("entre en agregar ", indexB)
 			conceptos2.append(conceptos[indexB])
 	#print("--- %s seconds etapa 8 bd frecuentes---" % (time.time() - start_time))
-
-
 	# ---------ELIMINAR COCNEPCTOS QUE ESTAN CONTENIDO EN CONCEPTOS CON UNA DESCRIPCION MAYOR
 	conceptos3=[]
 	Sort_4(descSeguncon)
@@ -484,7 +461,7 @@ def ProcesarOracionFrecuentes(frasePrueba, indexP, val, start_time):
 		for elitem2 in descSeguncon[::-1]:
 			if elitem1 != elitem2:
 				if elitem2[2] >=  elitem1[2] and elitem2[2] <= elitem1[3] and elitem2[3] > elitem1[2] and elitem2[3] <= elitem1[3]:
-					#print("elitem2 = "+elitem2[0]+" esta en elitem1 = "+elitem1[0])
+					
 					if elitem2 in descSeguncon:
 						descSeguncon.remove(elitem2)
 
@@ -495,8 +472,6 @@ def ProcesarOracionFrecuentes(frasePrueba, indexP, val, start_time):
 
 	aumento=0
 	#print("--- %s seconds etapa 9 bd frecuentes---" % (time.time() - start_time))
-
-
 	# ---------AÑADIR ENTRE GUIONES MEDIOS, LOS FSN DE LOS CONCEPTOS FINALES ENCONTRADOS
 	conta = 0
 	con_id=[]
@@ -515,12 +490,6 @@ def ProcesarOracionFrecuentes(frasePrueba, indexP, val, start_time):
 				con_id.append([str(conc3), descripcion.term, FSN.term])
 				frasePrueba2 = frasePrueba2[:(indice_final)] + ' <<'+FSN.conceptid+'>>' + frasePrueba2[(indice_final):]
 	#print("--- %s seconds etapa 10 bd frecuentes---" % (time.time() - start_time))
-
-	
-
-
-
-
 	# ---------AÑADIR PROPIEDAD "EXTENSION" AL JSON PARA MOSTRAR CUANTOS CONCEPTOS SE ENCONTRARON Y SU ID		
 
 	if "fullUrl" in val:		
@@ -558,24 +527,9 @@ def ProcesarOracionFrecuentes(frasePrueba, indexP, val, start_time):
 					"FSN" : item[2]
 					} )
 
-	#-----------Guardar tokens de los conceptos encontrados en la frase
-	"""descAceptadas=[]
-	for i in conceptos3:
-		desc = DescriptionS.objects.filter(conceptid = i[0])
-		for j in desc:
-			#print(j.term)
-			tokens = [t for t in j.term.split()]
-			#tokens = word_tokenize(j.term)
-			filt_tokens = [w.lower() for w in tokens if not w.lower() in stop_words]
-			for k in filt_tokens:
-				TokensDiagnosticosFrecuentes.objects.create(token=k.lower(), id_descripcion=j.id, largo_palabras_termino=len(filt_tokens))
-				descAceptadas.append([k.lower(), j.id, len(filt_tokens)])
-	print("descAceptadas", descAceptadas)
-	"""
-
 	if frasePrueba2 == "":
 		listaRetorno = [indexP, frasePrueba, 0]
-		#return listaRetorno
+	
 	else:
 		listaRetorno = [indexP, frasePrueba2, 1]
 	return listaRetorno
