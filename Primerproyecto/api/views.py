@@ -50,19 +50,19 @@ def match_con_frase(frase_original, lista_conceptos_encontrados):
 		words = i["text"].split()
 		buscar = words[-1]+" "
 		if frase_original.rfind((words[-1]+" ").lower()) != -1:
-			frase_original = frase_original.replace((words[-1]+" "), (("→"+words[-1]+" ")))
+			frase_original = frase_original.replace((words[-1]+" ").lower(), (("→"+words[-1]+" ")).lower())
 			indice_final_frase = frase_original.rfind((words[-1]+" ").lower())+len(words[-1])
 			frase_original = frase_original[:indice_final_frase] + "<<"+i["id"]+">>" +frase_original[indice_final_frase:]
 		elif frase_original.rfind((words[-1]+",").lower()) != -1:
-			frase_original = frase_original.replace((words[-1]+","), (("→"+words[-1]+",")))
+			frase_original = frase_original.replace((words[-1]+",").lower(), (("→"+words[-1]+",")).lower())
 			indice_final_frase = frase_original.rfind((words[-1]+",").lower())+len(words[-1])
 			frase_original = frase_original[:indice_final_frase] + "<<"+i["id"]+">>" +frase_original[indice_final_frase:]
 		elif frase_original.rfind((words[-1]+".").lower()) != -1:
-			frase_original = frase_original.replace((words[-1]+"."), (("→"+words[-1]+".")))
+			frase_original = frase_original.replace((words[-1]+".").lower(), (("→"+words[-1]+".")).lower())
 			indice_final_frase = frase_original.rfind((words[-1]+".").lower())+len(words[-1])
 			frase_original = frase_original[:indice_final_frase] + "<<"+i["id"]+">>" +frase_original[indice_final_frase:]
 		elif frase_original.rfind((words[-1]+")").lower()) != -1:
-			frase_original = frase_original.replace((words[-1]+")"), (("→"+words[-1]+")")))
+			frase_original = frase_original.replace((words[-1]+")").lower(), (("→"+words[-1]+")")).lower())
 			indice_final_frase = frase_original.rfind((words[-1]+")").lower())+len(words[-1])
 			frase_original = frase_original[:indice_final_frase] + "<<"+i["id"]+">>" +frase_original[indice_final_frase:]
 		
