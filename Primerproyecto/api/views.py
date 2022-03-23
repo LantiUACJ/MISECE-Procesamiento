@@ -738,24 +738,39 @@ def ProcesarBundleView(request):
 			 		fraseFinal = ""
 			 		
 			 		status_frases = []
-			 		try:
-				 		if tokens_frases:
+			 		"""try:
+			 					 					 						 		if tokens_frases:
+			 					 					 						 			status_frases = Parallel(n_jobs=-1, prefer="threads")(delayed(ProcesarOracionFrecuentes)(frases, indx, val, start_time) for indx, frases in enumerate(tokens_frases))
+			 					 					 						 			
+			 					 					 						 		lista_unos = [i2 for indx2, i2 in enumerate(status_frases) if i2[2] == 1]
+			 					 					 						 		lista_final = []
+			 					 					 						 		lista_final = Parallel(n_jobs=-1, prefer="threads")(delayed(ProcesarOracion2)(i[1], indx, val, start_time) for indx, i in enumerate(status_frases) if i[2] == 0)
+			 					 					 						 		lista_unida = lista_unos + lista_final
+			 					 					 						 		lista_unida = Sort_0(lista_unida)
+			 					 					 		
+			 					 					 						 		for indx3, item in enumerate(lista_unida):
+			 					 					 								  if indx3 == 0:
+			 					 					 								    fraseFinal = fraseFinal + item[1].capitalize()
+			 					 					 								  else:
+			 					 					 								    fraseFinal = fraseFinal + " "+ item[1].capitalize()
+			 					 					 						 						 		
+			 					 					 						 	except:
+			 					 					 						 		pass"""
+
+				 	if tokens_frases:
 				 			status_frases = Parallel(n_jobs=-1, prefer="threads")(delayed(ProcesarOracionFrecuentes)(frases, indx, val, start_time) for indx, frases in enumerate(tokens_frases))
 				 			
-				 		lista_unos = [i2 for indx2, i2 in enumerate(status_frases) if i2[2] == 1]
-				 		lista_final = []
-				 		lista_final = Parallel(n_jobs=-1, prefer="threads")(delayed(ProcesarOracion2)(i[1], indx, val, start_time) for indx, i in enumerate(status_frases) if i[2] == 0)
-				 		lista_unida = lista_unos + lista_final
-				 		lista_unida = Sort_0(lista_unida)
+			 		lista_unos = [i2 for indx2, i2 in enumerate(status_frases) if i2[2] == 1]
+			 		lista_final = []
+			 		lista_final = Parallel(n_jobs=-1, prefer="threads")(delayed(ProcesarOracion2)(i[1], indx, val, start_time) for indx, i in enumerate(status_frases) if i[2] == 0)
+			 		lista_unida = lista_unos + lista_final
+			 		lista_unida = Sort_0(lista_unida)
 
-				 		for indx3, item in enumerate(lista_unida):
-						  if indx3 == 0:
-						    fraseFinal = fraseFinal + item[1].capitalize()
-						  else:
-						    fraseFinal = fraseFinal + " "+ item[1].capitalize()
-				 						 		
-				 	except:
-				 		pass
+			 		for indx3, item in enumerate(lista_unida):
+					  if indx3 == 0:
+					    fraseFinal = fraseFinal + item[1].capitalize()
+					  else:
+					    fraseFinal = fraseFinal + " "+ item[1].capitalize()
 
 				 	if len(status_frases) != 0:
 				 		frase_original = val['resource']['conclusion']
@@ -1013,24 +1028,38 @@ def ProcesarDiagnosticReportView(request):
 		 		fraseFinal = ""
 		 		
 		 		status_frases = []
-		 		try:
-			 		if tokens_frases:
+		 		"""try:
+		 				 				 					 		if tokens_frases:
+		 				 				 					 			status_frases = Parallel(n_jobs=-1, prefer="threads")(delayed(ProcesarOracionFrecuentes)(frases, indx, responseMA, start_time) for indx, frases in enumerate(tokens_frases))
+		 				 				 					 			
+		 				 				 					 		lista_unos = [i2 for indx2, i2 in enumerate(status_frases) if i2[2] == 1]
+		 				 				 					 		lista_final = []
+		 				 				 					 		lista_final = Parallel(n_jobs=-1, prefer="threads")(delayed(ProcesarOracion2)(i[1], indx, responseMA, start_time) for indx, i in enumerate(status_frases) if i[2] == 0)
+		 				 				 					 		lista_unida = lista_unos + lista_final
+		 				 				 					 		lista_unida = Sort_0(lista_unida)
+		 				 				 		
+		 				 				 					 		for indx3, item in enumerate(lista_unida):
+		 				 				 					 		  if indx3 == 0:
+		 				 				 					 		    fraseFinal = fraseFinal + item[1].capitalize()
+		 				 				 					 		  else:
+		 				 				 					 		    fraseFinal = fraseFinal + " "+ item[1].capitalize()
+		 				 				 					 		
+		 				 				 				 		except:
+		 				 				 				 			pass"""
+		 		if tokens_frases:
 			 			status_frases = Parallel(n_jobs=-1, prefer="threads")(delayed(ProcesarOracionFrecuentes)(frases, indx, responseMA, start_time) for indx, frases in enumerate(tokens_frases))
 			 			
-			 		lista_unos = [i2 for indx2, i2 in enumerate(status_frases) if i2[2] == 1]
-			 		lista_final = []
-			 		lista_final = Parallel(n_jobs=-1, prefer="threads")(delayed(ProcesarOracion2)(i[1], indx, responseMA, start_time) for indx, i in enumerate(status_frases) if i[2] == 0)
-			 		lista_unida = lista_unos + lista_final
-			 		lista_unida = Sort_0(lista_unida)
+		 		lista_unos = [i2 for indx2, i2 in enumerate(status_frases) if i2[2] == 1]
+		 		lista_final = []
+		 		lista_final = Parallel(n_jobs=-1, prefer="threads")(delayed(ProcesarOracion2)(i[1], indx, responseMA, start_time) for indx, i in enumerate(status_frases) if i[2] == 0)
+		 		lista_unida = lista_unos + lista_final
+		 		lista_unida = Sort_0(lista_unida)
 
-			 		for indx3, item in enumerate(lista_unida):
-			 		  if indx3 == 0:
-			 		    fraseFinal = fraseFinal + item[1].capitalize()
-			 		  else:
-			 		    fraseFinal = fraseFinal + " "+ item[1].capitalize()
-			 		
-		 		except:
-		 			pass
+		 		for indx3, item in enumerate(lista_unida):
+		 		  if indx3 == 0:
+		 		    fraseFinal = fraseFinal + item[1].capitalize()
+		 		  else:
+		 		    fraseFinal = fraseFinal + " "+ item[1].capitalize()
 
 		 		if len(status_frases) != 0:
 			 		frase_original = responseMA['conclusion']
