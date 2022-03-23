@@ -84,14 +84,23 @@ WSGI_APPLICATION = 'Primerproyecto.wsgi.application'
 }"""
 
 
-DATABASES = {
+"""DATABASES = {
 'default': {
     'ENGINE': 'django.db.backends.mysql',
     'NAME': 'db_snomed_snap',
     'USER': 'root',
     'PASSWORD': '',
-}}
+}}"""
 
+DATABASES = {
+'default': {
+    'ENGINE': 'django.db.backends.mysql',
+    'HOST': '148.210.68.216',
+    'PORT': '3306',
+    'NAME': 'db_snomed',
+    'USER': 'snomeduser',
+    'PASSWORD': 'SnoMed.2021!',
+}}
 # Password validation
 # https://docs.djangoproject.com/en/3.2/ref/settings/#auth-password-validators
 
