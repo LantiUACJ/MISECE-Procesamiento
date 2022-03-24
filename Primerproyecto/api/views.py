@@ -756,7 +756,9 @@ def ProcesarBundleView(request):
 						    fraseFinal = fraseFinal + " "+ item[1].capitalize()
 				 						 		
 				 	except:
-				 		pass
+				 		val['resource'].update({"InternalError" : "Error al procesar texto libre"})
+
+				 	
 
 				 	if len(status_frases) != 0:
 				 		frase_original = val['resource']['conclusion']
