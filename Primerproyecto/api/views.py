@@ -503,6 +503,7 @@ def apiOverview(request):
 		'ProcesarSNOMED MedicationAdministration': '/procesarSNOMED/MedicationAdministration',
 		'ProcesarSNOMED Procedure': '/procesarSNOMED/Procedure',
 		'ProcesarSNOMED Observation': '/procesarSNOMED/Observation',
+		'ProcesarSNOMED AWS Bundle': '/procesarSNOMED/AWSBundle',
 
 	}
 	return Response(api_urls)
@@ -1404,5 +1405,13 @@ def ProcesarObservationView(request):
 			return Response(responseMA)
 		else:
 			return Response(status=status.HTTP_400_BAD_REQUEST)
+	else:
+		return Response(status=status.HTTP_400_BAD_REQUEST)
+
+@api_view(['POST'])
+def ProcesarAWSBundleView(request):
+	responseMA = request.data
+	if (responseMA):
+		return Response(responseMA) 
 	else:
 		return Response(status=status.HTTP_400_BAD_REQUEST)

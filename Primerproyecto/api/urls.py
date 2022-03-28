@@ -9,4 +9,5 @@ urlpatterns = [
 	path('procesarSNOMED/MedicationAdministration', views.ProcesarMedicationAdministrationView, name =  "api-procesarMedicationAdministrationSNOMED"),
 	path('procesarSNOMED/Procedure', views.ProcesarProcedureView, name =  "api-procesarProcedureSNOMED"),
 	path('procesarSNOMED/Observation', views.ProcesarObservationView, name =  "api-procesarObservationSNOMED"),
+	path('procesarSNOMED/AWSBundle', views.ProcesarAWSBundleView, name =  "api-procesarObservationSNOMED"),
 	]
