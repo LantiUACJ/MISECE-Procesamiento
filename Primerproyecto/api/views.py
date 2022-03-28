@@ -675,7 +675,10 @@ def ProcesarBundleView(request):
 		 		if 'conclusionCode' in val['resource']:
 		 			if 'text' in val['resource']['conclusionCode']:
 		 				conclusionCode = normalize(val['resource']['conclusionCode']['text'])
+		 				print("conclusionCode: ", conclusionCode)
 				 		descripciones = DescriptionS.objects.filter(term = conclusionCode) & DescriptionS.objects.filter(category_id = 6)
+				 		#descripciones = DescriptionS.objects.filter(term = conclusionCode)
+				 		print("descripciones", descripciones)
 				 		sinonimos = Synonyms.objects.filter(term = conclusionCode)
 				 		if descripciones.count() > 1:
 				 			for i in descripciones:
