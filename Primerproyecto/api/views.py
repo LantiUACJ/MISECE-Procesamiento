@@ -26,6 +26,7 @@ import multiprocessing
 from functools import partial
 from itertools import repeat
 from multiprocessing import Pool, freeze_support
+import traceback
 
 def Sort_0(sub_li): 
 	sub_li.sort(key = lambda x: int(x[0]),reverse=False)
@@ -317,10 +318,14 @@ def ProcesarOracion2(frasePrueba, indexP, val, start_time):
 			tokens = [t for t in j.term.split()]
 			filt_tokens = [w.lower() for w in tokens if not w.lower() in stop_words]
 			for k in filt_tokens:
-				p, created = TokensDiagnosticosFrecuentes.objects.get_or_create(
-			    token=k.lower(),
-			    id_descripcion=j.id,
-			    largo_palabras_termino=len(filt_tokens))
+				obj = TokensDiagnosticosFrecuentes.objects.filter(
+				    	token=k.lower(),
+					    id_descripcion=j.id,
+					    largo_palabras_termino=len(filt_tokens))
+				if len(obj) == 0:
+					obj = TokensDiagnosticosFrecuentes(token=k.lower(), id_descripcion=j.id, largo_palabras_termino=len(filt_tokens))
+					obj.save()
+
 				descAceptadas.append([k.lower(), j.id, len(filt_tokens)])
 	if frasePrueba2 == "":
 		return [indexP, frasePrueba, 1]
@@ -538,29 +543,29 @@ def ProcesarBundleView(request):
 				 		if descripciones:
 				 			concepto = ConceptS.objects.get(id = descripciones[0].conceptid)
 				 			if concepto.active == '1':
-				 				val['resource'].update( {"extension": [{
+				 				val['resource'].update( {"ConceptosSNOMED": [{
 				 					"url" : "codeSNOMEDActivo",
 				 					"text" : descripciones[0].conceptid
 				 					}]} ) 
 				 			else:
-				 				val['resource'].update( {"extension": [{
+				 				val['resource'].update( {"ConceptosSNOMED": [{
 				 					"url" : "codeSNOMEDInactivo",
 				 					"text" : descripciones[0].conceptid
 				 					}]} ) 
 				 		elif sinonimos:
 				 			concepto = ConceptS.objects.get(id = sinonimos[0].conceptid)
 				 			if concepto.active == '1':
-				 				val['resource'].update( {"extension": [{
+				 				val['resource'].update( {"ConceptosSNOMED": [{
 				 					"url" : "codeSNOMEDActivo",
 				 					"text" : sinonimos[0].conceptid
 				 					}]} ) 
 				 			else:
-				 				val['resource'].update( {"extension": [{
+				 				val['resource'].update( {"ConceptosSNOMED": [{
 				 					"url" : "codeSNOMEDInactivo",
 				 					"text" : sinonimos[0].conceptid
 				 					}]} ) 
 				 		else:
-				 			val['resource'].update( {"extension": [{
+				 			val['resource'].update( {"ConceptosSNOMED": [{
 				 					"url" : "codeSNOMED",
 				 					"text" : 0
 				 					}]} )
@@ -588,29 +593,29 @@ def ProcesarBundleView(request):
 			 			if descripciones:
 			 				concepto = ConceptS.objects.get(id = descripciones[0].conceptid)
 			 				if concepto.active == '1':
-			 					val['resource'].update( {"extension": [{
+			 					val['resource'].update( {"ConceptosSNOMED": [{
 			 					"url" : "methodSNOMEDActivo",
 			 					"text" : descripciones[0].conceptid
 			 					}]} ) 
 			 				else:
-			 					val['resource'].update( {"extension": [{
+			 					val['resource'].update( {"ConceptosSNOMED": [{
 			 					"url" : "methodSNOMEDInactivo",
 			 					"text" : descripciones[0].conceptid
 			 					}]} ) 
 			 			elif sinonimos:
 			 				concepto = ConceptS.objects.get(id = sinonimos[0].conceptid)
 			 				if concepto.active == '1':
-			 					val['resource'].update( {"extension": [{
+			 					val['resource'].update( {"ConceptosSNOMED": [{
 			 					"url" : "methodSNOMEDActivo",
 			 					"text" : sinonimos[0].conceptid
 			 					}]} ) 
 			 				else:
-			 					val['resource'].update( {"extension": [{
+			 					val['resource'].update( {"ConceptosSNOMED": [{
 			 					"url" : "methodSNOMEDInactivo",
 			 					"text" : sinonimos[0].conceptid
 			 					}]} ) 
 			 			else:
-			 				val['resource'].update( {"extension": [{
+			 				val['resource'].update( {"ConceptosSNOMED": [{
 			 					"url" : "methodSNOMEDInactivo",
 			 					"text" : 0
 			 					}]} ) 
@@ -675,10 +680,8 @@ def ProcesarBundleView(request):
 		 		if 'conclusionCode' in val['resource']:
 		 			if 'text' in val['resource']['conclusionCode']:
 		 				conclusionCode = normalize(val['resource']['conclusionCode']['text'])
-		 				print("conclusionCode: ", conclusionCode)
 				 		descripciones = DescriptionS.objects.filter(term = conclusionCode) & DescriptionS.objects.filter(category_id = 6)
 				 		#descripciones = DescriptionS.objects.filter(term = conclusionCode)
-				 		print("descripciones", descripciones)
 				 		sinonimos = Synonyms.objects.filter(term = conclusionCode)
 				 		if descripciones.count() > 1:
 				 			for i in descripciones:
@@ -693,29 +696,29 @@ def ProcesarBundleView(request):
 				 		if descripciones:
 				 			concepto = ConceptS.objects.get(id = descripciones[0].conceptid)
 				 			if concepto.active == '1':
-				 				val['resource'].update( {"extension": [{
+				 				val['resource'].update( {"ConceptosSNOMED": [{
 				 					"url" : "conclusionCodeSNOMEDActivo",
 				 					"text" : descripciones[0].conceptid
 				 					}]} ) 
 				 			else:
-				 				val['resource'].update( {"extension": [{
+				 				val['resource'].update( {"ConceptosSNOMED": [{
 				 					"url" : "conclusionCodeSNOMEDInactivo",
 			 					"text" : descripciones[0].conceptid
 			 					}]} ) 
 				 		elif sinonimos:
 				 			concepto = ConceptS.objects.get(id = sinonimos[0].conceptid)
 				 			if concepto.active == '1':
-				 				val['resource'].update( {"extension": [{
+				 				val['resource'].update( {"ConceptosSNOMED": [{
 				 					"url" : "conclusionCodeSNOMEDActivo",
 				 					"text" : sinonimos[0].conceptid
 				 					}]} ) 
 				 			else:
-				 				val['resource'].update( {"extension": [{
+				 				val['resource'].update( {"ConceptosSNOMED": [{
 				 					"url" : "conclusionCodeSNOMEDInactivo",
 				 					"text" : sinonimos[0].conceptid
 				 					}]} ) 
 				 		else:
-				 			val['resource'].update( {"extension": [{
+				 			val['resource'].update( {"ConceptosSNOMED": [{
 				 					"url" : "conclusionCodeSNOMED",
 				 					"text" : 0
 				 					}]} ) 
@@ -759,8 +762,8 @@ def ProcesarBundleView(request):
 						  else:
 						    fraseFinal = fraseFinal + " "+ item[1].capitalize()
 				 						 		
-				 	except:
-				 		val['resource'].update({"InternalError" : "Error al procesar texto libre"})
+				 	except Exception as e: 
+				 		val['resource'].update({"Advertencia" : "Algunos caracteres del texto no se pudieron procesar."})
 
 				 	
 
@@ -796,29 +799,29 @@ def ProcesarBundleView(request):
 			 			if descripciones:
 			 				concepto = ConceptS.objects.get(id = descripciones[0].conceptid)
 			 				if concepto.active == '1':
-			 					val['resource'].update( {"extension": [{
+			 					val['resource'].update( {"ConceptosSNOMED": [{
 			 					"url" : "codeSNOMEDActivo",
 			 					"text" : descripciones[0].conceptid
 			 					}]} ) 
 			 				else:
-			 					val['resource'].update( {"extension": [{
+			 					val['resource'].update( {"ConceptosSNOMED": [{
 			 					"url" : "codeSNOMEDInactivo",
 			 					"text" : descripciones[0].conceptid
 			 					}]} )
 			 			elif sinonimos:
 			 				concepto = ConceptS.objects.get(id = sinonimos[0].conceptid)
 			 				if concepto.active == "1":
-			 					val['resource'].update( {"extension": [{
+			 					val['resource'].update( {"ConceptosSNOMED": [{
 			 					"url" : "codeSNOMEDActivo",
 			 					"text" : sinonimos[0].conceptid
 			 					}]} )
 	 						else:
-	 							val['resource'].update( {"extension": [{
+	 							val['resource'].update( {"ConceptosSNOMED": [{
 			 					"url" : "codeSNOMEDInactivo",
 			 					"text" : sinonimos[0].conceptid
 			 					}]} )
 	 					else:
-	 						val['resource'] .update( {"extension": [{
+	 						val['resource'] .update( {"ConceptosSNOMED": [{
 			 					"url" : "codeSNOMED",
 			 					"text" : 0
 			 					}]} )
@@ -848,30 +851,30 @@ def ProcesarBundleView(request):
 					 		if descripciones:
 					 			concepto = ConceptS.objects.get(id = descripciones[0].conceptid)
 					 			if concepto.active == '1':
-					 				val['resource'].update( {"extension": [{
+					 				val['resource'].update( {"ConceptosSNOMED": [{
 					 					"url" : "categorySNOMEDActivo",
 					 					"text" : descripciones[0].conceptid
 					 					}]} ) 
 					 			else:
-					 				val['resource'].update( {"extension": [{
+					 				val['resource'].update( {"ConceptosSNOMED": [{
 					 					"url" : "categorySNOMEDInactivo",
 					 					"text" : descripciones[0].conceptid
 					 					}]} )
 					 		elif sinonimos:
 					 			concepto = ConceptS.objects.get(id = sinonimos[0].conceptid)
 					 			if concepto.active == '1':
-					 				val['resource'].update( {"extension": [{
+					 				val['resource'].update( {"ConceptosSNOMED": [{
 					 					"url" : "categorySNOMEDActivo",
 					 					"text" : sinonimos[0].conceptid
 					 					}]} ) 
 					 			else:
-					 				val['resource'].update( {"extension": [{
+					 				val['resource'].update( {"ConceptosSNOMED": [{
 					 					"url" : "categorySNOMEDInactivo",
 					 					"text" : sinonimos[0].conceptid
 					 					}]} ) 
 
 					 		else:
-					 			val['resource'].update( {"extension": [{
+					 			val['resource'].update( {"ConceptosSNOMED": [{
 					 					"url" : "categorySNOMED",
 					 					"text" : 0
 					 					}]} )
@@ -968,29 +971,29 @@ def ProcesarDiagnosticReportView(request):
 				 		if descripciones:
 				 			concepto = ConceptS.objects.get(id = descripciones[0].conceptid)
 				 			if concepto.active == '1':
-				 				responseMA.update( {"extension": [{
+				 				responseMA.update( {"ConceptosSNOMED": [{
 				 					"url" : "conclusionCodeSNOMEDActivo",
 				 					"text" : descripciones[0].conceptid
 				 					}]} ) 
 				 			else:
-				 				responseMA.update( {"extension": [{
+				 				responseMA.update( {"ConceptosSNOMED": [{
 				 					"url" : "conclusionCodeSNOMEDInactivo",
 				 					"text" : descripciones[0].conceptid
 				 					}]} ) 
 				 		elif sinonimos:
 				 			concepto = ConceptS.objects.get(id = sinonimos[0].conceptid)
 				 			if concepto.active == '1':
-				 				responseMA.update( {"extension": [{
+				 				responseMA.update( {"ConceptosSNOMED": [{
 				 					"url" : "conclusionCodeSNOMEDActivo",
 				 					"text" : sinonimos[0].conceptid
 				 					}]} ) 
 				 			else:
-				 				responseMA.update( {"extension": [{
+				 				responseMA.update( {"ConceptosSNOMED": [{
 				 					"url" : "conclusionCodeSNOMEDInactivo",
 				 					"text" : sinonimos[0].conceptid
 				 					}]} ) 
 				 		else:
-				 			responseMA.update( {"extension": [{
+				 			responseMA.update( {"ConceptosSNOMED": [{
 				 					"url" : "conclusionCodeSNOMED",
 				 					"text" : 0
 				 					}]} ) 
@@ -1035,8 +1038,8 @@ def ProcesarDiagnosticReportView(request):
 			 		  else:
 			 		    fraseFinal = fraseFinal + " "+ item[1].capitalize()
 			 		
-		 		except:
-		 			pass
+		 		except Exception as e:
+		 			responseMA.update({"Advertencia" : "Algunos caracteres del texto no se pudieron procesar."})
 
 		 		if len(status_frases) != 0:
 			 		frase_original = responseMA['conclusion']
@@ -1080,29 +1083,29 @@ def ProcesarMedicationView(request):
 					if descripciones:
 			 			concepto = ConceptS.objects.get(id = descripciones[0].conceptid)
 			 			if concepto.active == '1':
-			 				responseMA.update( {"extension": [{
+			 				responseMA.update( {"ConceptosSNOMED": [{
 			 					"url" : "codeSNOMEDActivo",
 			 					"text" : descripciones[0].conceptid
 			 					}]} ) 
 			 			else:
-			 				responseMA.update( {"extension": [{
+			 				responseMA.update( {"ConceptosSNOMED": [{
 			 					"url" : "codeSNOMEDInactivo",
 			 					"text" : descripciones[0].conceptid
 			 					}]} ) 
 					elif sinonimos:
 			 			concepto = ConceptS.objects.get(id = sinonimos[0].conceptid)
 			 			if concepto.active == '1':
-			 				responseMA.update( {"extension": [{
+			 				responseMA.update( {"ConceptosSNOMED": [{
 			 					"url" : "codeSNOMEDActivo",
 			 					"text" : sinonimos[0].conceptid
 			 					}]} ) 
 			 			else:
-			 				responseMA.update( {"extension": [{
+			 				responseMA.update( {"ConceptosSNOMED": [{
 			 					"url" : "codeSNOMEDInactivo",
 			 					"text" : sinonimos[0].conceptid
 			 					}]} ) 
 					else:
-			 			responseMA.update( {"extension": [{
+			 			responseMA.update( {"ConceptosSNOMED": [{
 			 					"url" : "codeSNOMED",
 			 					"text" : 0
 			 					}]} )
@@ -1141,29 +1144,29 @@ def ProcesarMedicationAdministrationView(request):
 		 			if descripciones:
 		 				concepto = ConceptS.objects.get(id = descripciones[0].conceptid)
 		 				if concepto.active == '1':
-		 					responseMA.update( {"extension": [{
+		 					responseMA.update( {"ConceptosSNOMED": [{
 		 					"url" : "methodSNOMEDActivo",
 		 					"text" : descripciones[0].conceptid
 		 					}]} ) 
 		 				else:
-		 					responseMA.update( {"extension": [{
+		 					responseMA.update( {"ConceptosSNOMED": [{
 		 					"url" : "methodSNOMEDInactivo",
 		 					"text" : descripciones[0].conceptid
 		 					}]} ) 
 		 			elif sinonimos:
 		 				concepto = ConceptS.objects.get(id = sinonimos[0].conceptid)
 		 				if concepto.active == '1':
-		 					responseMA.update( {"extension": [{
+		 					responseMA.update( {"ConceptosSNOMED": [{
 		 					"url" : "methodSNOMEDActivo",
 		 					"text" : sinonimos[0].conceptid
 		 					}]} ) 
 		 				else:
-		 					responseMA.update( {"extension": [{
+		 					responseMA.update( {"ConceptosSNOMED": [{
 		 					"url" : "methodSNOMEDInactivo",
 		 					"text" : sinonimos[0].conceptid
 		 					}]} ) 
 		 			else:
-		 				responseMA.update( {"extension": [{
+		 				responseMA.update( {"ConceptosSNOMED": [{
 		 					"url" : "methodSNOMEDInactivo",
 		 					"text" : 0
 		 					}]} ) 
@@ -1254,29 +1257,29 @@ def ProcesarProcedureView(request):
 					if descripciones:
 		 				concepto = ConceptS.objects.get(id = descripciones[0].conceptid)
 		 				if concepto.active == '1':
-		 					responseMA.update( {"extension": [{
+		 					responseMA.update( {"ConceptosSNOMED": [{
 		 					"url" : "codeSNOMEDActivo",
 		 					"text" : descripciones[0].conceptid
 		 					}]} ) 
 		 				else:
-		 					responseMA.update( {"extension": [{
+		 					responseMA.update( {"ConceptosSNOMED": [{
 		 					"url" : "codeSNOMEDInactivo",
 		 					"text" : descripciones[0].conceptid
 		 					}]} )
 					elif sinonimos:
 		 				concepto = ConceptS.objects.get(id = sinonimos[0].conceptid)
 		 				if concepto.active == "1":
-		 					responseMA.update( {"extension": [{
+		 					responseMA.update( {"ConceptosSNOMED": [{
 		 					"url" : "codeSNOMEDActivo",
 		 					"text" : sinonimos[0].conceptid
 		 					}]} )
 		 				else:
-		 					responseMA.update( {"extension": [{
+		 					responseMA.update( {"ConceptosSNOMED": [{
 		 					"url" : "codeSNOMEDInactivo",
 		 					"text" : sinonimos[0].conceptid
 		 					}]} )
 					else:
-		 				responseMA .update( {"extension": [{
+		 				responseMA .update( {"ConceptosSNOMED": [{
 		 					"url" : "codeSNOMED",
 		 					"text" : 0
 		 					}]} )
@@ -1317,30 +1320,30 @@ def ProcesarObservationView(request):
 				 		if descripciones:
 				 			concepto = ConceptS.objects.get(id = descripciones[0].conceptid)
 				 			if concepto.active == '1':
-				 				responseMA.update( {"extension": [{
+				 				responseMA.update( {"ConceptosSNOMED": [{
 				 					"url" : "categorySNOMEDActivo",
 				 					"text" : descripciones[0].conceptid
 				 					}]} ) 
 				 			else:
-				 				responseMA.update( {"extension": [{
+				 				responseMA.update( {"ConceptosSNOMED": [{
 				 					"url" : "categorySNOMEDInactivo",
 				 					"text" : descripciones[0].conceptid
 				 					}]} )
 				 		elif sinonimos:
 				 			concepto = ConceptS.objects.get(id = sinonimos[0].conceptid)
 				 			if concepto.active == '1':
-				 				responseMA.update( {"extension": [{
+				 				responseMA.update( {"ConceptosSNOMED": [{
 				 					"url" : "categorySNOMEDActivo",
 				 					"text" : sinonimos[0].conceptid
 				 					}]} ) 
 				 			else:
-				 				responseMA.update( {"extension": [{
+				 				responseMA.update( {"ConceptosSNOMED": [{
 				 					"url" : "categorySNOMEDInactivo",
 				 					"text" : sinonimos[0].conceptid
 				 					}]} ) 
 
 				 		else:
-				 			responseMA.update( {"extension": [{
+				 			responseMA.update( {"ConceptosSNOMED": [{
 				 					"url" : "categorySNOMED",
 				 					"text" : 0
 				 					}]} )
@@ -1369,35 +1372,35 @@ def ProcesarObservationView(request):
 					if descripciones:
 			 			concepto = ConceptS.objects.get(id = descripciones[0].conceptid)
 			 			if concepto.active == '1':
-			 				responseMA['extension'].append({
+			 				responseMA['ConceptosSNOMED'].append({
 			 					"url" : "codeSNOMEDActivo",
 			 					"text" : descripciones[0].conceptid
 			 					} ) 
 			 			else:
-			 				responseMA['extension'].append({
+			 				responseMA['ConceptosSNOMED'].append({
 			 					"url" : "codeSNOMEDInactivo",
 			 					"text" : descripciones[0].conceptid
 			 					} ) 
 					elif sinonimos:
 			 			concepto = ConceptS.objects.get(id = sinonimos[0].conceptid)
 			 			if concepto.active == '1':
-			 				responseMA['extension'].append({
+			 				responseMA['ConceptosSNOMED'].append({
 			 					"url" : "codeSNOMEDActivo",
 			 					"text" : sinonimos[0].conceptid
 			 					} ) 
 			 			else:
-			 				responseMA['extension'].append({
+			 				responseMA['ConceptosSNOMED'].append({
 			 					"url" : "codeSNOMEDInactivo",
 			 					"text" : sinonimos[0].conceptid
 			 					} ) 
 					else:
-						if 'extension' not in responseMA:
-							responseMA.update( {"extension": [{
+						if 'ConceptosSNOMED' not in responseMA:
+							responseMA.update( {"ConceptosSNOMED": [{
 				 					"url" : "codeSNOMED",
 				 					"text" : 0
 				 					}]} )
 						else:
-							responseMA['extension'].append({
+							responseMA['ConceptosSNOMED'].append({
 			 					"url" : "codeSNOMED",
 			 					"text" : 0
 			 					} )
