@@ -642,13 +642,13 @@ def ProcesarBundleView(request):
 			 			if descripciones:
 			 				concepto = ConceptS.objects.get(id = descripciones[0].conceptid)
 			 				if concepto.active == '1':
-			 					val['resource']['extension'].append({
+			 					val['resource']['ConceptosSNOMED'].append({
 			 					"url" : "rutaSNOMEDActivo",
 			 					"text" : descripciones[0].conceptid
 			 					} ) 
 			 					
 			 				else:
-			 					val['resource']['extension'].append({
+			 					val['resource']['ConceptosSNOMED'].append({
 			 					"url" : "rutaSNOMEDInactivo",
 			 					"text" : descripciones[0].conceptid
 			 					} ) 
@@ -656,17 +656,17 @@ def ProcesarBundleView(request):
 		 				elif sinonimos:
 		 					concepto = ConceptS.objects.get(id = sinonimos[0].conceptid)
 		 					if concepto.active == '1':
-		 						val['resource']['extension'].append({
+		 						val['resource']['ConceptosSNOMED'].append({
 			 					"url" : "rutaSNOMEDActivo",
 			 					"text" : sinonimos[0].conceptid
 			 					} ) 
 		 					else:
-		 						val['resource']['extension'].append({
+		 						val['resource']['ConceptosSNOMED'].append({
 			 					"url" : "rutaSNOMEDActivo",
 			 					"text" : sinonimos[0].conceptid
 			 					} ) 
 		 				else:
-		 					val['resource']['extension'].append({
+		 					val['resource']['ConceptosSNOMED'].append({
 			 					"url" : "rutaSNOMED",
 			 					"text" : 0
 			 					} ) 
@@ -678,7 +678,12 @@ def ProcesarBundleView(request):
 			 	print("--- %s seconds Resource MedicationAdministration ---" % (time.time() - start_time))
 		 	if "DiagnosticReport" == val['resource']['resourceType']:
 		 		if 'conclusionCode' in val['resource']:
-		 			if 'text' in val['resource']['conclusionCode']:
+		 			print("val['resource']['conclusionCode']['coding']['system']",val['resource']['conclusionCode']['coding']['system'])
+		 			checar_bool = "snomed" not in val['resource']['conclusionCode']['coding']['system']
+		 			print(" snomed not val['resource']['conclusionCode']['coding']['system']", checar_bool)
+		 			if ('text' in val['resource']['conclusionCode'] and 'coding' not in val['resource']['conclusionCode']) \
+		 			or ('text' in val['resource']['conclusionCode'] and 'coding' in val['resource']['conclusionCode'] and 'system' not in val['resource']['conclusionCode']['coding'] ) \
+		 			or ('text' in val['resource']['conclusionCode'] and 'coding' in val['resource']['conclusionCode'] and 'system' not in val['resource']['conclusionCode']['coding'] and checar_bool ):
 		 				conclusionCode = normalize(val['resource']['conclusionCode']['text'])
 				 		descripciones = DescriptionS.objects.filter(term = conclusionCode) & DescriptionS.objects.filter(category_id = 6)
 				 		#descripciones = DescriptionS.objects.filter(term = conclusionCode)
@@ -725,6 +730,7 @@ def ProcesarBundleView(request):
 				 			existe = ConceptosNoEncontrados.objects.filter(concepto = conclusionCode).first()
 				 			if not existe:
 				 				ConceptosNoEncontrados.objects.create(concepto = conclusionCode)
+			 			
 			 	if 'conclusion' in val['resource']:
 			 		frasePrueba = val['resource']['conclusion'].lower() 
 			 		stop_words = set(stopwords.words("spanish"))
