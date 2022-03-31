@@ -841,111 +841,65 @@ def ProcesarBundleView(request):
 			 		print("--- %s seconds Resource Procedure ---" % (time.time() - start_time))
 			 			
 		 	if "Observation" == val['resource']['resourceType']:
-		 		if 'category' in val['resource']:
-		 			for categ in val['resource']['category']:
-		 				if 'text' in categ:
-		 					categoria = normalize(categ['text'])
-		 					descripciones = DescriptionS.objects.filter(term = categoria)
-					 		sinonimos = Synonyms.objects.filter(term = categoria)
+		 		if 'code' in val['resource']:
+		 			if ('text' in val['resource']['code'] and 'coding' not in val['resource']['code']) \
+					or ('text' in val['resource']['code'] and 'coding' in val['resource']['code'] and 'system' not in val['resource']['code']['coding'] ) \
+			 		or ('text' in val['resource']['code'] and 'coding' in val['resource']['code'] and 'system' in val['resource']['code']['coding'] and "snomed" not in val['resource']['code']['coding']['system'] ):
+			 			if 'text' in val['resource']['code']:
+			 				code = normalize(val['resource']['code']['text'])					 				
+					 		descripciones = DescriptionS.objects.filter(term = code)
+					 		sinonimos = Synonyms.objects.filter(term = code)
 					 		if descripciones.count() > 1:
 					 			for i in descripciones:
 						 			con = ConceptS.objects.get(id = i.conceptid)
 						 			if con.active == '0':
 						 				descripciones = descripciones.exclude(id=i.id)
+						 			
 						 	if sinonimos.count() > 1:
 					 			for i in sinonimos:
 						 			con = ConceptS.objects.get(id = i.conceptid)
 						 			if con.active == '0':
 						 				sinonimos = sinonimos.exclude(id=i.id)
-					 		if descripciones:
+						 			
+						 	if descripciones:
 					 			concepto = ConceptS.objects.get(id = descripciones[0].conceptid)
 					 			if concepto.active == '1':
 					 				val['resource'].update( {"ConceptosSNOMED": [{
-					 					"url" : "categorySNOMEDActivo",
+					 					"url" : "codeSNOMEDActivo",
 					 					"text" : descripciones[0].conceptid
-					 					}]} ) 
+					 					}]} )
 					 			else:
 					 				val['resource'].update( {"ConceptosSNOMED": [{
-					 					"url" : "categorySNOMEDInactivo",
+					 					"url" : "codeSNOMEDActivo",
 					 					"text" : descripciones[0].conceptid
 					 					}]} )
 					 		elif sinonimos:
 					 			concepto = ConceptS.objects.get(id = sinonimos[0].conceptid)
 					 			if concepto.active == '1':
 					 				val['resource'].update( {"ConceptosSNOMED": [{
-					 					"url" : "categorySNOMEDActivo",
+					 					"url" : "codeSNOMEDActivo",
 					 					"text" : sinonimos[0].conceptid
-					 					}]} ) 
+					 					}]} )
 					 			else:
 					 				val['resource'].update( {"ConceptosSNOMED": [{
-					 					"url" : "categorySNOMEDInactivo",
+					 					"url" : "codeSNOMEDActivo",
 					 					"text" : sinonimos[0].conceptid
-					 					}]} ) 
-
-					 		else:
-					 			val['resource'].update( {"ConceptosSNOMED": [{
-					 					"url" : "categorySNOMED",
-					 					"text" : 0
 					 					}]} )
-					 			existe = ConceptosNoEncontrados.objects.filter(concepto = categoria).first()
+			 				else:
+			 					if 'ConceptosSNOMED' not in val['resource']:
+			 						val['resource'].update( {"ConceptosSNOMED": [{
+						 					"url" : "codeSNOMED",
+						 					"text" : 0
+						 					}]} )
+			 					else:
+			 						val['resource']['ConceptosSNOMED'].append({
+						 					"url" : "codeSNOMED",
+						 					"text" : 0
+						 					} ) 
+			 					existe = ConceptosNoEncontrados.objects.filter(concepto = code).first()
+
 					 			if not existe:
-					 				ConceptosNoEncontrados.objects.create(concepto = categoria)
-		 		if 'code' in val['resource']:
-		 			if 'text' in val['resource']['code']:
-		 				code = normalize(val['resource']['code']['text'])					 				
-				 		descripciones = DescriptionS.objects.filter(term = code)
-				 		sinonimos = Synonyms.objects.filter(term = code)
-				 		if descripciones.count() > 1:
-				 			for i in descripciones:
-					 			con = ConceptS.objects.get(id = i.conceptid)
-					 			if con.active == '0':
-					 				descripciones = descripciones.exclude(id=i.id)
-					 			
-					 	if sinonimos.count() > 1:
-				 			for i in sinonimos:
-					 			con = ConceptS.objects.get(id = i.conceptid)
-					 			if con.active == '0':
-					 				sinonimos = sinonimos.exclude(id=i.id)
-					 			
-					 	if descripciones:
-				 			concepto = ConceptS.objects.get(id = descripciones[0].conceptid)
-				 			if concepto.active == '1':
-				 				val['resource']['extension'].append({
-				 					"url" : "codeSNOMEDActivo",
-				 					"text" : descripciones[0].conceptid
-				 					} ) 
-				 			else:
-				 				val['resource']['extension'].append({
-				 					"url" : "codeSNOMEDInactivo",
-				 					"text" : descripciones[0].conceptid
-				 					} ) 
-				 		elif sinonimos:
-				 			concepto = ConceptS.objects.get(id = sinonimos[0].conceptid)
-				 			if concepto.active == '1':
-				 				val['resource']['extension'].append({
-				 					"url" : "codeSNOMEDActivo",
-				 					"text" : sinonimos[0].conceptid
-				 					} ) 
-				 			else:
-				 				val['resource']['extension'].append({
-				 					"url" : "codeSNOMEDInactivo",
-				 					"text" : sinonimos[0].conceptid
-				 					} ) 
-		 				else:
-		 					if 'extension' not in val['resource']:
-		 						val['resource'].update( {"extension": [{
-					 					"url" : "codeSNOMED",
-					 					"text" : 0
-					 					}]} )
-		 					else:
-		 						val['resource']['extension'].append({
-					 					"url" : "codeSNOMED",
-					 					"text" : 0
-					 					} ) 
-		 					existe = ConceptosNoEncontrados.objects.filter(concepto = code).first()
-
-				 			if not existe:
-				 				ConceptosNoEncontrados.objects.create(concepto = code)
+					 				ConceptosNoEncontrados.objects.create(concepto = code)
 			 	print("--- %s seconds Resource Observation ---" % (time.time() - start_time))
 
 		 data=""
@@ -1320,113 +1274,65 @@ def ProcesarObservationView(request):
 		recurso = responseMA['resourceType']
 		if (recurso == 'Observation'):
 			start_time = time.time()
-			if 'category' in responseMA:
-				for categ in responseMA['category']:
-					if 'text' in categ:
-					 	categoria = normalize(categ['text'])
-						#categoria = normalize(cod['display'])
-				 		descripciones = DescriptionS.objects.filter(term = categoria)
-				 		sinonimos = Synonyms.objects.filter(term = categoria)
-				 		if descripciones.count() > 1:
+			if 'code' in responseMA:
+				if ('text' in responseMA['code'] and 'coding' not in responseMA['code']) \
+				or ('text' in responseMA['code'] and 'coding' in responseMA['code'] and 'system' not in responseMA['code']['coding'] ) \
+		 		or ('text' in responseMA['code'] and 'coding' in responseMA['code'] and 'system' in responseMA['code']['coding'] and "snomed" not in responseMA['code']['coding']['system'] ):
+					if 'text' in responseMA['code']:
+						code = normalize(responseMA['code']['text'])
+						#code = normalize(cod3['display'])
+						descripciones = DescriptionS.objects.filter(term = code)
+						sinonimos = Synonyms.objects.filter(term = code)
+						if descripciones.count() > 1:
 				 			for i in descripciones:
 					 			con = ConceptS.objects.get(id = i.conceptid)
 					 			if con.active == '0':
 					 				descripciones = descripciones.exclude(id=i.id)
-					 	if sinonimos.count() > 1:
+					 			
+						if sinonimos.count() > 1:
 				 			for i in sinonimos:
 					 			con = ConceptS.objects.get(id = i.conceptid)
 					 			if con.active == '0':
 					 				sinonimos = sinonimos.exclude(id=i.id)
-				 		if descripciones:
+					 			
+						if descripciones:
 				 			concepto = ConceptS.objects.get(id = descripciones[0].conceptid)
 				 			if concepto.active == '1':
 				 				responseMA.update( {"ConceptosSNOMED": [{
-				 					"url" : "categorySNOMEDActivo",
-				 					"text" : descripciones[0].conceptid
-				 					}]} ) 
+			 					"url" : "codeSNOMEDActivo",
+			 					"text" : descripciones[0].conceptid
+			 					}]} ) 
 				 			else:
 				 				responseMA.update( {"ConceptosSNOMED": [{
-				 					"url" : "categorySNOMEDInactivo",
-				 					"text" : descripciones[0].conceptid
-				 					}]} )
-				 		elif sinonimos:
+			 					"url" : "codeSNOMEDActivo",
+			 					"text" : descripciones[0].conceptid
+			 					}]} ) 
+						elif sinonimos:
 				 			concepto = ConceptS.objects.get(id = sinonimos[0].conceptid)
 				 			if concepto.active == '1':
 				 				responseMA.update( {"ConceptosSNOMED": [{
-				 					"url" : "categorySNOMEDActivo",
-				 					"text" : sinonimos[0].conceptid
-				 					}]} ) 
+			 					"url" : "codeSNOMEDActivo",
+			 					"text" : sinonimos[0].conceptid
+			 					}]} ) 
 				 			else:
 				 				responseMA.update( {"ConceptosSNOMED": [{
-				 					"url" : "categorySNOMEDInactivo",
-				 					"text" : sinonimos[0].conceptid
-				 					}]} ) 
-
-				 		else:
-				 			responseMA.update( {"ConceptosSNOMED": [{
-				 					"url" : "categorySNOMED",
-				 					"text" : 0
-				 					}]} )
-				 			existe = ConceptosNoEncontrados.objects.filter(concepto = categoria).first()
-				 			if not existe:
-				 				ConceptosNoEncontrados.objects.create(concepto = categoria)
-
-			if 'code' in responseMA:
-				if 'text' in responseMA['code']:
-					code = normalize(responseMA['code']['text'])
-					#code = normalize(cod3['display'])
-					descripciones = DescriptionS.objects.filter(term = code)
-					sinonimos = Synonyms.objects.filter(term = code)
-					if descripciones.count() > 1:
-			 			for i in descripciones:
-				 			con = ConceptS.objects.get(id = i.conceptid)
-				 			if con.active == '0':
-				 				descripciones = descripciones.exclude(id=i.id)
-				 			
-					if sinonimos.count() > 1:
-			 			for i in sinonimos:
-				 			con = ConceptS.objects.get(id = i.conceptid)
-				 			if con.active == '0':
-				 				sinonimos = sinonimos.exclude(id=i.id)
-				 			
-					if descripciones:
-			 			concepto = ConceptS.objects.get(id = descripciones[0].conceptid)
-			 			if concepto.active == '1':
-			 				responseMA['ConceptosSNOMED'].append({
-			 					"url" : "codeSNOMEDActivo",
-			 					"text" : descripciones[0].conceptid
-			 					} ) 
-			 			else:
-			 				responseMA['ConceptosSNOMED'].append({
-			 					"url" : "codeSNOMEDInactivo",
-			 					"text" : descripciones[0].conceptid
-			 					} ) 
-					elif sinonimos:
-			 			concepto = ConceptS.objects.get(id = sinonimos[0].conceptid)
-			 			if concepto.active == '1':
-			 				responseMA['ConceptosSNOMED'].append({
 			 					"url" : "codeSNOMEDActivo",
 			 					"text" : sinonimos[0].conceptid
-			 					} ) 
-			 			else:
-			 				responseMA['ConceptosSNOMED'].append({
-			 					"url" : "codeSNOMEDInactivo",
-			 					"text" : sinonimos[0].conceptid
-			 					} ) 
-					else:
-						if 'ConceptosSNOMED' not in responseMA:
-							responseMA.update( {"ConceptosSNOMED": [{
+			 					}]} ) 
+						else:
+							if 'ConceptosSNOMED' not in responseMA:
+								responseMA.update( {"ConceptosSNOMED": [{
+					 					"url" : "codeSNOMED",
+					 					"text" : 0
+					 					}]} )
+							else:
+								responseMA['ConceptosSNOMED'].append({
 				 					"url" : "codeSNOMED",
 				 					"text" : 0
-				 					}]} )
-						else:
-							responseMA['ConceptosSNOMED'].append({
-			 					"url" : "codeSNOMED",
-			 					"text" : 0
-			 					} )
-						existe = ConceptosNoEncontrados.objects.filter(concepto = code).first()
-						if not existe:
-			 				ConceptosNoEncontrados.objects.create(concepto = code)
+				 					} )
+							existe = ConceptosNoEncontrados.objects.filter(concepto = code).first()
+							if not existe:
+				 				ConceptosNoEncontrados.objects.create(concepto = code)
 			print("--- %s seconds Resource Observation ---" % (time.time() - start_time))
 			return Response(responseMA)
 		else:
