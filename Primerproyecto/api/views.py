@@ -1163,13 +1163,13 @@ def ProcesarMedicationAdministrationView(request):
 		 			if descripciones:
 		 				concepto = ConceptS.objects.get(id = descripciones[0].conceptid)
 		 				if concepto.active == '1':
-		 					responseMA['extension'].append({
+		 					responseMA['ConceptosSNOMED'].append({
 		 					"url" : "rutaSNOMEDActivo",
 		 					"text" : descripciones[0].conceptid
 		 					} ) 
 		 					
 		 				else:
-		 					responseMA['extension'].append({
+		 					responseMA['ConceptosSNOMED'].append({
 		 					"url" : "rutaSNOMEDInactivo",
 		 					"text" : descripciones[0].conceptid
 		 					} ) 
@@ -1177,17 +1177,17 @@ def ProcesarMedicationAdministrationView(request):
 	 				elif sinonimos:
 	 					concepto = ConceptS.objects.get(id = sinonimos[0].conceptid)
 	 					if concepto.active == '1':
-	 						responseMA['extension'].append({
+	 						responseMA['ConceptosSNOMED'].append({
 		 					"url" : "rutaSNOMEDActivo",
 		 					"text" : sinonimos[0].conceptid
 		 					} ) 
 	 					else:
-	 						responseMA['extension'].append({
+	 						responseMA['ConceptosSNOMED'].append({
 		 					"url" : "rutaSNOMEDActivo",
 		 					"text" : sinonimos[0].conceptid
 		 					} ) 
 	 				else:
-	 					responseMA['extension'].append({
+	 					responseMA['ConceptosSNOMED'].append({
 		 					"url" : "rutaSNOMED",
 		 					"text" : 0
 		 					} ) 
