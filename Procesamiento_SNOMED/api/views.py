@@ -42,6 +42,7 @@ def Sort_4(sub_li):
 
 def match_con_frase(frase_original, lista_conceptos_encontrados):
 	l = lista_conceptos_encontrados
+	print("l", l)
 	frase_original = frase_original.lower()
 	for i in l:
 		if " (hallazgo)" in i["text"]:
@@ -570,7 +571,7 @@ def ProcesarBundleView(request):
 					 		else:
 					 			val['resource'].update( {"ConceptosSNOMED": [{
 					 					"url" : "codeSNOMED",
-					 					"text" : 0
+					 					"text" : "0"
 					 					}]} )
 					 			existe = ConceptosNoEncontrados.objects.filter(concepto = data).first()
 					 			if not existe:
@@ -620,7 +621,7 @@ def ProcesarBundleView(request):
 			 			else:
 			 				val['resource'].update( {"ConceptosSNOMED": [{
 			 					"url" : "methodSNOMEDInactivo",
-			 					"text" : 0
+			 					"text" : "0"
 			 					}]} ) 
 			 				existe = ConceptosNoEncontrados.objects.filter(concepto = metodo).first()
 				 			if not existe:
@@ -671,7 +672,7 @@ def ProcesarBundleView(request):
 		 				else:
 		 					val['resource']['ConceptosSNOMED'].append({
 			 					"url" : "rutaSNOMED",
-			 					"text" : 0
+			 					"text" : "0"
 			 					} ) 
 
 		 					existe = ConceptosNoEncontrados.objects.filter(concepto = ruta).first()
@@ -725,7 +726,7 @@ def ProcesarBundleView(request):
 				 		else:
 				 			val['resource'].update( {"ConceptosSNOMED": [{
 				 					"url" : "conclusionCodeSNOMED",
-				 					"text" : 0
+				 					"text" : "0"
 				 					}]} ) 
 				 			existe = ConceptosNoEncontrados.objects.filter(concepto = conclusionCode).first()
 				 			if not existe:
@@ -832,7 +833,7 @@ def ProcesarBundleView(request):
 		 					else:
 		 						val['resource'] .update( {"ConceptosSNOMED": [{
 				 					"url" : "codeSNOMED",
-				 					"text" : 0
+				 					"text" : "0"
 				 					}]} )
 		 						existe = ConceptosNoEncontrados.objects.filter(concepto = procedimiento).first()
 					 			if not existe:
@@ -889,12 +890,12 @@ def ProcesarBundleView(request):
 			 					if 'ConceptosSNOMED' not in val['resource']:
 			 						val['resource'].update( {"ConceptosSNOMED": [{
 						 					"url" : "codeSNOMED",
-						 					"text" : 0
+						 					"text" : "0"
 						 					}]} )
 			 					else:
 			 						val['resource']['ConceptosSNOMED'].append({
 						 					"url" : "codeSNOMED",
-						 					"text" : 0
+						 					"text" : "0"
 						 					} ) 
 			 					existe = ConceptosNoEncontrados.objects.filter(concepto = code).first()
 
@@ -961,7 +962,7 @@ def ProcesarDiagnosticReportView(request):
 				 		else:
 				 			responseMA.update( {"ConceptosSNOMED": [{
 				 					"url" : "conclusionCodeSNOMED",
-				 					"text" : 0
+				 					"text" : "0"
 				 					}]} ) 
 				 			if conclusionCode != "":	 				
 					 			existe = ConceptosNoEncontrados.objects.filter(concepto = conclusionCode).first()
@@ -1077,7 +1078,7 @@ def ProcesarMedicationView(request):
 						else:
 				 			responseMA.update( {"ConceptosSNOMED": [{
 				 					"url" : "codeSNOMED",
-				 					"text" : 0
+				 					"text" : "0"
 				 					}]} )
 				 			existe = ConceptosNoEncontrados.objects.filter(concepto = data).first()
 				 			if not existe:
@@ -1138,7 +1139,7 @@ def ProcesarMedicationAdministrationView(request):
 		 			else:
 		 				responseMA.update( {"ConceptosSNOMED": [{
 		 					"url" : "methodSNOMEDInactivo",
-		 					"text" : 0
+		 					"text" : "0"
 		 					}]} ) 
 		 				existe = ConceptosNoEncontrados.objects.filter(concepto = metodo).first()
 			 			if not existe:
@@ -1189,7 +1190,7 @@ def ProcesarMedicationAdministrationView(request):
 	 				else:
 	 					responseMA['ConceptosSNOMED'].append({
 		 					"url" : "rutaSNOMED",
-		 					"text" : 0
+		 					"text" : "0"
 		 					} ) 
 	 					existe = ConceptosNoEncontrados.objects.filter(concepto = ruta).first()
 			 			if not existe:
@@ -1255,7 +1256,7 @@ def ProcesarProcedureView(request):
 						else:
 			 				responseMA .update( {"ConceptosSNOMED": [{
 			 					"url" : "codeSNOMED",
-			 					"text" : 0
+			 					"text" : "0"
 			 					}]} )
 			 				existe = ConceptosNoEncontrados.objects.filter(concepto = procedimiento).first()
 				 			if not existe:
@@ -1323,12 +1324,12 @@ def ProcesarObservationView(request):
 							if 'ConceptosSNOMED' not in responseMA:
 								responseMA.update( {"ConceptosSNOMED": [{
 					 					"url" : "codeSNOMED",
-					 					"text" : 0
+					 					"text" : "0"
 					 					}]} )
 							else:
 								responseMA['ConceptosSNOMED'].append({
 				 					"url" : "codeSNOMED",
-				 					"text" : 0
+				 					"text" : "0"
 				 					} )
 							existe = ConceptosNoEncontrados.objects.filter(concepto = code).first()
 							if not existe:
