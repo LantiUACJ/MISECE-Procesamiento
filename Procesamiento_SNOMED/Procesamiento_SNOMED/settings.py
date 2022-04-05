@@ -52,7 +52,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-ROOT_URLCONF = 'Primerproyecto.urls'
+ROOT_URLCONF = 'Procesamiento_SNOMED.urls'
 
 TEMPLATES = [
     {
@@ -70,7 +70,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'Primerproyecto.wsgi.application'
+WSGI_APPLICATION = 'Procesamiento_SNOMED.wsgi.application'
 
 
 # Database
