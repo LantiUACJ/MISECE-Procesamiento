@@ -84,15 +84,15 @@ WSGI_APPLICATION = 'Procesamiento_SNOMED.wsgi.application'
 }"""
 
 
-"""DATABASES = {
+DATABASES = {
 'default': {
     'ENGINE': 'django.db.backends.mysql',
     'NAME': 'db_snomed_snap',
     'USER': 'root',
     'PASSWORD': '',
-}}"""
+}}
 
-DATABASES = {
+"""DATABASES = {
 'default': {
     'ENGINE': 'django.db.backends.mysql',
     'HOST': '148.210.68.216',
@@ -100,7 +100,7 @@ DATABASES = {
     'NAME': 'db_snomed',
     'USER': 'snomeduser',
     'PASSWORD': 'SnoMed.2021!',
-}}
+}}"""
 
 # Password validation
 # https://docs.djangoproject.com/en/3.2/ref/settings/#auth-password-validators
