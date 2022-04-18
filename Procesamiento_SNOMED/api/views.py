@@ -388,7 +388,7 @@ def ProcesarOracionFrecuentes(frasePrueba, indexP, val, start_time):
 			termino_correct_sin_repetido.append(term[0])
 	#print("--- %s seconds etapa 6 bd frecuentes ---" % (time.time() - start_time))
 
-	# ---------EXTRAER CONCEPTOS DE ACUARDO A LAS DESCRIPCIONES
+	# ---------EXTRAER CONCEPTOS DE ACUERDO A LAS DESCRIPCIONES
 	conceptos = []
 	for term in termino_correct_sin_repetido:
 		desc = Descripciones_y_sinonimos.objects.filter(id =int(term))
@@ -396,7 +396,7 @@ def ProcesarOracionFrecuentes(frasePrueba, indexP, val, start_time):
 	data=""
 	#print("--- %s seconds etapa 7 bd frecuentes---" % (time.time() - start_time))
 
-	#---------VERIFICACION SI EL ORDEN DE PALABRAS EN LA DESCRIPCION Y FRASE ESTA TAL CUAL DE MANERA VCONSECUTIVA
+	#---------VERIFICACION SI EL ORDEN DE PALABRAS EN LA DESCRIPCION Y FRASE ESTA TAL CUAL DE MANERA CONSECUTIVA
 	BooleanTalCual =[]
 	descSeguncon =[]
 	for conc in conceptos:
@@ -420,7 +420,7 @@ def ProcesarOracionFrecuentes(frasePrueba, indexP, val, start_time):
 		if agregar == 1:
 			conceptos2.append(conceptos[indexB])
 	#print("--- %s seconds etapa 8 bd frecuentes---" % (time.time() - start_time))
-	# ---------ELIMINAR COCNEPCTOS QUE ESTAN CONTENIDO EN CONCEPTOS CON UNA DESCRIPCION MAYOR
+	# ---------ELIMINAR CONCEPTOS QUE ESTAN CONTENIDO EN CONCEPTOS CON UNA DESCRIPCION MAYOR
 	conceptos3=[]
 	Sort_4(descSeguncon)
 
@@ -456,7 +456,7 @@ def ProcesarOracionFrecuentes(frasePrueba, indexP, val, start_time):
 				con_id.append([str(conc3), descripcion.term, FSN.term])
 				frasePrueba2 = frasePrueba2[:(indice_final)] + ' <<'+FSN.conceptid+'>>' + frasePrueba2[(indice_final):]
 	#print("--- %s seconds etapa 10 bd frecuentes---" % (time.time() - start_time))
-	# ---------AÑADIR PROPIEDAD "EXTENSION" AL JSON PARA MOSTRAR CUANTOS CONCEPTOS SE ENCONTRARON Y SU ID		
+	# ---------AÑADIR PROPIEDAD "ConceptosSNOMED" AL JSON PARA MOSTRAR CUANTOS CONCEPTOS SE ENCONTRARON Y SU ID		
 
 	if "fullUrl" in val:		
 		if len(con_id) >= 1:
