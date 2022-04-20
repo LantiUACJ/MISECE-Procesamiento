@@ -28,6 +28,8 @@ from itertools import repeat
 from multiprocessing import Pool, freeze_support
 import traceback
 import boto3
+from google.cloud import translate_v2
+from googletrans import Translator
 
 def Sort_0(sub_li): 
 	sub_li.sort(key = lambda x: int(x[0]),reverse=False)
@@ -1564,24 +1566,34 @@ def ProcesarAWSBundleView(request):
 				 				ConceptosNoEncontrados.objects.create(concepto = conclusionCode)
 			 			
 			 	if 'conclusion' in val['resource']:
-			 		frasePrueba = val['resource']['conclusion'].lower() 
+			 		frasePrueba = val['resource']['conclusion'].lower()
+			 		translator = Translator()  # initalize the Translator object
+			 		translation = translator.translate(frasePrueba, dest='en')  # traduccion a ingles
+			 		print(translation.text)
+
 			 		response = client.infer_snomedct(
-					    Text='depressible, painful and distended abdomen.'
+					    Text=translation.text
 					)
 			 		for indxAWS, entity in enumerate(response['Entities']):
 			 			if "ConceptosSNOMED" not in val['resource']:
+			 				traslation_1 = translator.translate(entity['Text'], dest='es')  # traduccion a español
+			 				text_entity_traslate = traslation_1.text
+			 				FSN = DescriptionS.objects.filter(conceptid = str(entity['SNOMEDCTConcepts'][0]['Code']), typeid = "900000000000003001")
 			 				val['resource'].update( {"ConceptosSNOMED": [{
 			 				"url" : "codeSNOMEDActivo "+str(indxAWS),
 			 				"id" : entity['SNOMEDCTConcepts'][0]['Code'],
-			 				"text" : entity['Text'],
-			 				"FSN" : entity['SNOMEDCTConcepts'][0]['Description']
+			 				"text" : text_entity_traslate,
+			 				"FSN" : FSN[0].term
 			 				}]} )
 			 			else:
+			 				traslation_1 = translator.translate(entity['Text'], dest='es')  # traduccion a español
+			 				text_entity_traslate = traslation_1.text
+			 				FSN = DescriptionS.objects.filter(conceptid = str(entity['SNOMEDCTConcepts'][0]['Code']), typeid = "900000000000003001")
 			 				val['resource']["ConceptosSNOMED"].append( {
 			 				"url" : "codeSNOMEDActivo "+str(indxAWS),
 			 				"id" : entity['SNOMEDCTConcepts'][0]['Code'],
-			 				"text" : entity['Text'],
-			 				"FSN" : entity['SNOMEDCTConcepts'][0]['Description']
+			 				"text" : text_entity_traslate,
+			 				"FSN" : FSN[0].term
 			 				} )
 			 	frase_original = val['resource']['conclusion']
 			 	if frase_original[-1] != ".":
