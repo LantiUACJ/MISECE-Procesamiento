@@ -21,5 +21,5 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('apli/', include('Aplicacion1.urls')),
     path('api/', include('api.urls')),
-    path('', lambda req: redirect('Procesamieto_SNOMED/api/')),
+    path('', lambda req: redirect('procesamiento/api/')),
 ]
