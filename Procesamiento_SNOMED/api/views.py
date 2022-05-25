@@ -30,6 +30,7 @@ import traceback
 import boto3
 from google.cloud import translate_v2
 from googletrans import Translator
+import threading
 
 def DiagnosticReport(responseMA):
 
@@ -921,18 +922,37 @@ def ProcesarBundleView(request):
 		 responseMA1 = copy.deepcopy(responseMA)
 		 for val in responseMA['entry']:
 		 	if "Medication" == val['resource']['resourceType']:
+		 		#t = threading.Thread(target = Medication, args = (val['resource'],))
+
 		 		Medication(val['resource'])
 		 	if "MedicationAdministration" == val['resource']['resourceType']:
+		 		#t2 = threading.Thread(target = MedicationAdministration, args = (val['resource'],))
 		 		MedicationAdministration(val['resource'])
 		 	if "DiagnosticReport" == val['resource']['resourceType']:
+		 		#t3 = threading.Thread(target = DiagnosticReport, args = (val['resource'],))
 		 		DiagnosticReport(val['resource'])
 		 	
 		 	if "Procedure" == val['resource']['resourceType']:
+		 		#t4 = threading.Thread(target = Procedure, args = (val['resource'],))
 		 		Procedure(val['resource'])
 			 			
 		 	if "Observation" == val['resource']['resourceType']:
+		 		#t5 = threading.Thread(target = Observation, args = (val['resource'],))
 		 		Observation(val['resource'])
 			 	print("--- %s seconds Resource Observation ---" % (time.time() - start_time))
+		 """t.start()
+		 		 		 		 t2.start()
+		 		 		 		 t3.start()
+		 		 		 		 t4.start()
+		 		 		 		 t5.start()
+		 		 		 		 t.join()
+		 		 		 		 t2.join()
+		 		 		 		 t3.join()
+		 		 		 		 t4.join()
+		 		 		 		 t5.join()"""
+
+
+
 
 		 data=""
 		 print("--- %s seconds ---" % (time.time() - start_time))
