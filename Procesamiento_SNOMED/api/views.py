@@ -947,6 +947,7 @@ def ProcesarDiagnosticReportView(request):
 		recurso = responseMA['resourceType']
 		if (recurso == 'DiagnosticReport'):
 			DiagnosticReport(responseMA)
+			return Response(responseMA)
 		else:
 			return Response(status=status.HTTP_400_BAD_REQUEST)
 	else:
@@ -958,7 +959,8 @@ def ProcesarMedicationView(request):
 	if (responseMA):
 		recurso = responseMA['resourceType']
 		if (recurso == 'Medication'):
-			Medication(val['resource'])
+			Medication(responseMA)
+			return Response(responseMA)
 		else:
 			return Response(status=status.HTTP_400_BAD_REQUEST)
 	else:
@@ -971,6 +973,7 @@ def ProcesarMedicationAdministrationView(request):
 		recurso = responseMA['resourceType']
 		if (recurso == 'MedicationAdministration'):
 			MedicationAdministration(responseMA)
+			return Response(responseMA)
 	else:
 		return Response(status=status.HTTP_400_BAD_REQUEST)
 
@@ -981,6 +984,8 @@ def ProcesarProcedureView(request):
 		recurso = responseMA['resourceType']
 		if (recurso == 'Procedure'):
 			Procedure(responseMA)
+			return Response(responseMA)
+
 		else:
 			return Response(status=status.HTTP_400_BAD_REQUEST)
 	else:
@@ -993,6 +998,7 @@ def ProcesarObservationView(request):
 		recurso = responseMA['resourceType']
 		if (recurso == 'Observation'):
 			Observation(responseMA)
+			return Response(responseMA)
 		else:
 			return Response(status=status.HTTP_400_BAD_REQUEST)
 	else:
