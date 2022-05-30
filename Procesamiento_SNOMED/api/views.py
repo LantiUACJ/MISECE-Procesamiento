@@ -139,6 +139,115 @@ def DiagnosticReport(responseMA):
 	print("--- %s seconds Resource DiagnosticReport alone ---" % (time.time() - start_time))	
 	return Response(responseMA)
 
+#función que procesa texto libre sin el procesamiento de concepts frecuentes
+def DiagnosticReportNF(responseMA):
+
+	start_time = time.time()
+	if 'conclusionCode' in responseMA:
+		if ('text' in responseMA['conclusionCode'] and 'coding' not in responseMA['conclusionCode']) \
+		or ('text' in responseMA['conclusionCode'] and 'coding' in responseMA['conclusionCode'] and 'system' not in responseMA['conclusionCode']['coding'] ) \
+ 		or ('text' in responseMA['conclusionCode'] and 'coding' in responseMA['conclusionCode'] and 'system' in responseMA['conclusionCode']['coding'] and "snomed" not in responseMA['conclusionCode']['coding']['system'] ):
+ 			if 'text' in responseMA['conclusionCode']:
+ 				conclusionCode = normalize(responseMA['conclusionCode']['text'])
+ 				#conclusionCode = normalize(codD['display'])
+		 		descripciones = DescriptionS.objects.filter(term = conclusionCode) & DescriptionS.objects.filter(category_id = 6)
+		 		sinonimos = Synonyms.objects.filter(term = conclusionCode)
+		 		if descripciones.count() > 1:
+		 			for i in descripciones:
+			 			con = ConceptS.objects.get(id = i.conceptid)
+			 			if con.active == '0':
+			 				descripciones = descripciones.exclude(id=i.id)
+			 	if sinonimos.count() > 1:
+		 			for i in sinonimos:
+			 			con = ConceptS.objects.get(id = i.conceptid)
+			 			if con.active == '0':
+			 				sinonimos = sinonimos.exclude(id=i.id)
+		 		if descripciones:
+		 			concepto = ConceptS.objects.get(id = descripciones[0].conceptid)
+		 			if concepto.active == '1':
+		 				responseMA.update( {"ConceptosSNOMED": [{
+		 					"url" : "conclusionCodeSNOMEDActivo",
+		 					"text" : descripciones[0].conceptid
+		 					}]} ) 
+		 			else:
+		 				responseMA.update( {"ConceptosSNOMED": [{
+		 					"url" : "conclusionCodeSNOMEDInactivo",
+		 					"text" : descripciones[0].conceptid
+		 					}]} ) 
+		 		elif sinonimos:
+		 			concepto = ConceptS.objects.get(id = sinonimos[0].conceptid)
+		 			if concepto.active == '1':
+		 				responseMA.update( {"ConceptosSNOMED": [{
+		 					"url" : "conclusionCodeSNOMEDActivo",
+		 					"text" : sinonimos[0].conceptid
+		 					}]} ) 
+		 			else:
+		 				responseMA.update( {"ConceptosSNOMED": [{
+		 					"url" : "conclusionCodeSNOMEDInactivo",
+		 					"text" : sinonimos[0].conceptid
+		 					}]} ) 
+		 		else:
+		 			responseMA.update( {"ConceptosSNOMED": [{
+		 					"url" : "conclusionCodeSNOMED",
+		 					"text" : "0"
+		 					}]} ) 
+		 			if conclusionCode != "":	 				
+			 			existe = ConceptosNoEncontrados.objects.filter(concepto = conclusionCode).first()
+			 			if not existe:
+			 				ConceptosNoEncontrados.objects.create(concepto = conclusionCode)
+	if 'conclusion' in responseMA:
+ 		
+ 		frasePrueba = responseMA['conclusion'].lower()
+
+ 		stop_words = set(stopwords.words("spanish"))
+ 		frase2 = ""
+ 		tokens_frases1 = sent_tokenize(frasePrueba)
+ 		frases_preprocesadas = Parallel(n_jobs=-1, prefer="threads")(delayed(Preprocesamiento)(indx, frases) for indx, frases in enumerate(tokens_frases1))
+ 		frases_preprocesada_ordenada = Sort_0(frases_preprocesadas)
+ 		for indx4, item in enumerate(frases_preprocesada_ordenada):
+		  if indx4 == 0:
+		    frase2 = frase2 + item[1].capitalize()
+		  else:
+		    frase2 = frase2 + " "+ item[1].capitalize()
+ 		frasePrueba = copy.deepcopy(frase2)
+ 		
+ 		frasePrueba = frasePrueba.replace(', ', '. ').lower()
+ 		tokens_frases = sent_tokenize(frasePrueba)
+ 		fraseFinal = ""
+ 		
+ 		status_frases = []
+ 		try:
+	 		if tokens_frases:
+	 			status_frases = [ [indx, frases, 0]  for indx, frases in enumerate(tokens_frases)]
+	 			#status_frases = Parallel(n_jobs=-1, prefer="threads")(delayed(ProcesarOracionFrecuentes)(frases, indx, responseMA, start_time) for indx, frases in enumerate(tokens_frases))
+	 			
+	 		lista_unos = [i2 for indx2, i2 in enumerate(status_frases) if i2[2] == 1]
+	 		lista_final = []
+	 		lista_final = Parallel(n_jobs=-1, prefer="threads")(delayed(ProcesarOracion2)(i[1], indx, responseMA, start_time) for indx, i in enumerate(status_frases) if i[2] == 0)
+	 		lista_unida = lista_unos + lista_final
+	 		lista_unida = Sort_0(lista_unida)
+
+	 		for indx3, item in enumerate(lista_unida):
+	 		  if indx3 == 0:
+	 		    fraseFinal = fraseFinal + item[1].capitalize()
+	 		  else:
+	 		    fraseFinal = fraseFinal + " "+ item[1].capitalize()
+	 		
+ 		except Exception as e:
+ 			responseMA.update({"Advertencia" : "Algunos caracteres del texto no se pudieron procesar."})
+
+ 		if len(status_frases) != 0:
+	 		frase_original = responseMA['conclusion']
+	 		if frase_original[-1] != ".":
+	 			frase_original = frase_original + "."
+	 		if 'ConceptosSNOMED' in responseMA:
+		 			lista_conceptos_encontrados = responseMA['ConceptosSNOMED']
+		 			frase_con_ids = match_con_frase(frase_original, lista_conceptos_encontrados)
+		 			responseMA.update( {"conclusion": frase_con_ids} )
+	 		
+	print("--- %s seconds Resource DiagnosticReport alone ---" % (time.time() - start_time))	
+	return Response(responseMA)
+
 def Medication(responseMA):
 	start_time = time.time()
 	if 'code' in responseMA:
@@ -922,37 +1031,35 @@ def ProcesarBundleView(request):
 		 responseMA1 = copy.deepcopy(responseMA)
 		 for val in responseMA['entry']:
 		 	if "Medication" == val['resource']['resourceType']:
-		 		#t = threading.Thread(target = Medication, args = (val['resource'],))
+		 		t = threading.Thread(target = Medication, args = (val['resource'],))
 
-		 		Medication(val['resource'])
+		 		#Medication(val['resource'])
 		 	if "MedicationAdministration" == val['resource']['resourceType']:
-		 		#t2 = threading.Thread(target = MedicationAdministration, args = (val['resource'],))
-		 		MedicationAdministration(val['resource'])
+		 		t2 = threading.Thread(target = MedicationAdministration, args = (val['resource'],))
+		 		#MedicationAdministration(val['resource'])
 		 	if "DiagnosticReport" == val['resource']['resourceType']:
-		 		#t3 = threading.Thread(target = DiagnosticReport, args = (val['resource'],))
-		 		DiagnosticReport(val['resource'])
+		 		#t3 = threading.Thread(target = DiagnosticReport, args = (val['resource'],))#utilizar esta linea para procesamiento de conceptos frecuentes
+		 		t3 = threading.Thread(target = DiagnosticReportNF, args = (val['resource'],))#
+		 		#DiagnosticReportNF(val['resource'])
 		 	
 		 	if "Procedure" == val['resource']['resourceType']:
-		 		#t4 = threading.Thread(target = Procedure, args = (val['resource'],))
-		 		Procedure(val['resource'])
+		 		t4 = threading.Thread(target = Procedure, args = (val['resource'],))
+		 		#Procedure(val['resource'])
 			 			
 		 	if "Observation" == val['resource']['resourceType']:
-		 		#t5 = threading.Thread(target = Observation, args = (val['resource'],))
-		 		Observation(val['resource'])
+		 		t5 = threading.Thread(target = Observation, args = (val['resource'],))
+		 		#Observation(val['resource'])
 			 	print("--- %s seconds Resource Observation ---" % (time.time() - start_time))
-		 """t.start()
-		 		 		 		 t2.start()
-		 		 		 		 t3.start()
-		 		 		 		 t4.start()
-		 		 		 		 t5.start()
-		 		 		 		 t.join()
-		 		 		 		 t2.join()
-		 		 		 		 t3.join()
-		 		 		 		 t4.join()
-		 		 		 		 t5.join()"""
-
-
-
+		 t.start()
+		 t2.start()
+		 t3.start()
+		 t4.start()
+		 t5.start()
+		 t.join()
+		 t2.join()
+		 t3.join()
+		 t4.join()
+		 t5.join()
 
 		 data=""
 		 print("--- %s seconds ---" % (time.time() - start_time))
