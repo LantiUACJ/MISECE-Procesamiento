@@ -32,6 +32,7 @@ from google.cloud import translate_v2
 from googletrans import Translator
 import threading
 
+#funcion para añadir extension de conceptossnomed a los recursos
 def ExtendSnomed(responseMA, recurso, propiedad):
 	if recurso == "DiagnosticReport":
 		if propiedad == "conclusionCode":
