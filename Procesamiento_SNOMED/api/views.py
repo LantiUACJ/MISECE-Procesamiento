@@ -1073,7 +1073,7 @@ def ProcesarDiagnosticReportView(request):
 	if (responseMA):
 		recurso = responseMA['resourceType']
 		if (recurso == 'DiagnosticReport'):
-			DiagnosticReport(responseMA)
+			DiagnosticReportNF(responseMA)
 			return Response(responseMA)
 		else:
 			return Response(status=status.HTTP_400_BAD_REQUEST)
