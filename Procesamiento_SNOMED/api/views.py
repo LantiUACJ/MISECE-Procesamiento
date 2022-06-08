@@ -511,7 +511,7 @@ def Observation(responseMA):
 	 					}]} ) 
 		 			else:
 		 				responseMA.update( {"ConceptosSNOMED": [{
-	 					"url" : "codeSNOMEDActivo",
+	 					"url" : "codeSNOMEDInactivo",
 	 					"text" : sinonimos[0].conceptid
 	 					}]} ) 
 				else:
