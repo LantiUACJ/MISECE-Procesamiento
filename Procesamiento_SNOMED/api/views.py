@@ -452,7 +452,7 @@ def MedicationAdministration(responseMA):
  					} ) 
  				else:
  					responseMA['ConceptosSNOMED'].append({
- 					"url" : "rutaSNOMEDActivo",
+ 					"url" : "rutaSNOMEDInactivo",
  					"text" : sinonimos[0].conceptid
  					} ) 
  			else:
