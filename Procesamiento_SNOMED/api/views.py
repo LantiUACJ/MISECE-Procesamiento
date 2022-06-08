@@ -406,7 +406,7 @@ def MedicationAdministration(responseMA):
  					}]} ) 
  			else:
  				responseMA.update( {"ConceptosSNOMED": [{
- 					"url" : "methodSNOMEDInactivo",
+ 					"url" : "methodSNOMED",
  					"text" : "0"
  					}]} ) 
  				existe = ConceptosNoEncontrados.objects.filter(concepto = metodo).first()
