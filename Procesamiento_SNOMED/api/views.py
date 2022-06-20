@@ -32,6 +32,102 @@ from google.cloud import translate_v2
 from googletrans import Translator
 import threading
 
+def ExtendSnomedArray(responseMA, recurso, propiedad):
+	print("entre en array")
+	if recurso == "DiagnosticReport":
+		if propiedad == "conclusionCode":
+			categoria = 6
+			parte_url = "conclusionCode"
+			for val in responseMA['conclusionCode']:
+				if ('text' in val and 'coding' not in val) \
+				or ('text' in val and 'coding' in val and 'system' not in val['coding'] ) \
+		 		or ('text' in val and 'coding' in val and 'system' in val['coding'] and "snomed" not in val['coding']['system'] ):
+		 			if 'text' in val:
+		 				print("val[text]",val['text'])
+		 				elemento_a_buscar = normalize(val['text']) #conclusionCode de diagnosticReport es el elemento_a_buscar
+		 				descripciones = DescriptionS.objects.filter(term = elemento_a_buscar) & DescriptionS.objects.filter(category_id = categoria)
+		 				sinonimos = Synonyms.objects.filter(term = elemento_a_buscar)
+		 				if descripciones.count() > 1:
+		 					for i in descripciones:
+		 						con = ConceptS.objects.get(id = i.conceptid)
+		 						if con.active == '0':
+		 							descripciones = descripciones.exclude(id=i.id)
+		 				if sinonimos.count() > 1:
+		 					for i in sinonimos:
+		 						con = ConceptS.objects.get(id = i.conceptid)
+		 						if con.active == '0':
+		 							sinonimos = sinonimos.exclude(id=i.id)
+		 				if 'ConceptosSNOMED' not in responseMA:
+		 					if descripciones:
+		 						concepto = ConceptS.objects.get(id = descripciones[0].conceptid)
+		 						if concepto.active == '1':
+		 							responseMA.update( {"ConceptosSNOMED": [{
+		 								"url" : parte_url+"SNOMEDActivo",
+		 								"text" : descripciones[0].conceptid
+		 								}]} ) 
+		 						else:
+		 							responseMA.update( {"ConceptosSNOMED": [{
+		 								"url" : parte_url+"SNOMEDInactivo",
+		 								"text" : descripciones[0].conceptid
+		 								}]} ) 
+		 					elif sinonimos:
+		 						concepto = ConceptS.objects.get(id = sinonimos[0].conceptid)
+		 						if concepto.active == '1':
+		 							responseMA.update( {"ConceptosSNOMED": [{
+		 								"url" : parte_url+"SNOMEDActivo",
+		 								"text" : sinonimos[0].conceptid
+		 								}]} ) 
+		 						else:
+		 							responseMA.update( {"ConceptosSNOMED": [{
+		 								"url" : parte_url+"SNOMEDInactivo",
+		 								"text" : sinonimos[0].conceptid
+		 								}]} ) 
+		 					else:
+		 						responseMA.update( {"ConceptosSNOMED": [{
+		 								"url" : parte_url+"SNOMED",
+		 								"text" : "0"
+		 								}]} ) 
+		 						if elemento_a_buscar != "":	 				
+		 							existe = ConceptosNoEncontrados.objects.filter(concepto = elemento_a_buscar).first()
+		 							if not existe:
+		 								ConceptosNoEncontrados.objects.create(concepto = elemento_a_buscar)
+		 				else:
+		 					if descripciones:
+		 						concepto = ConceptS.objects.get(id = descripciones[0].conceptid)
+		 						if concepto.active == '1':
+		 							responseMA['ConceptosSNOMED'].append({
+		 							"url" : parte_url+"SNOMEDActivo",
+		 							"text" : descripciones[0].conceptid
+		 							} ) 
+		 							
+		 						else:
+		 							responseMA['ConceptosSNOMED'].append({
+		 							"url" : parte_url+"SNOMEDInactivo",
+		 							"text" : descripciones[0].conceptid
+		 							} ) 
+
+		 					elif sinonimos:
+		 						concepto = ConceptS.objects.get(id = sinonimos[0].conceptid)
+		 						if concepto.active == '1':
+		 							responseMA['ConceptosSNOMED'].append({
+		 							"url" : parte_url+"SNOMEDActivo",
+		 							"text" : sinonimos[0].conceptid
+		 							} ) 
+		 						else:
+		 							responseMA['ConceptosSNOMED'].append({
+		 							"url" : parte_url+"SNOMEDInactivo",
+		 							"text" : sinonimos[0].conceptid
+		 							} ) 
+		 					else:
+		 						responseMA['ConceptosSNOMED'].append({
+		 							"url" : parte_url+"SNOMED",
+		 							"text" : "0"
+		 							} ) 
+		 						if elemento_a_buscar != "":	 				
+		 							existe = ConceptosNoEncontrados.objects.filter(concepto = elemento_a_buscar).first()
+		 							if not existe:
+		 								ConceptosNoEncontrados.objects.create(concepto = elemento_a_buscar)
+
 #funcion para añadir extension de conceptossnomed a los recursos
 def ExtendSnomed(responseMA, recurso, propiedad):
 	if recurso == "DiagnosticReport":
@@ -271,11 +367,7 @@ def DiagnosticReportNF(responseMA):
 
 	start_time = time.time()
 	if 'conclusionCode' in responseMA:
-		if ('text' in responseMA['conclusionCode'] and 'coding' not in responseMA['conclusionCode']) \
-		or ('text' in responseMA['conclusionCode'] and 'coding' in responseMA['conclusionCode'] and 'system' not in responseMA['conclusionCode']['coding'] ) \
- 		or ('text' in responseMA['conclusionCode'] and 'coding' in responseMA['conclusionCode'] and 'system' in responseMA['conclusionCode']['coding'] and "snomed" not in responseMA['conclusionCode']['coding']['system'] ):
- 			if 'text' in responseMA['conclusionCode']:
- 				ExtendSnomed(responseMA, "DiagnosticReport", "conclusionCode")
+		ExtendSnomedArray(responseMA, "DiagnosticReport", "conclusionCode")
  				
 	if 'conclusion' in responseMA:
  		
