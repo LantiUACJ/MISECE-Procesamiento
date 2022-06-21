@@ -62,29 +62,29 @@ def ExtendSnomedArray(responseMA, recurso, propiedad):
 		 						concepto = ConceptS.objects.get(id = descripciones[0].conceptid)
 		 						if concepto.active == '1':
 		 							responseMA.update( {"ConceptosSNOMED": [{
-		 								"url" : parte_url+"SNOMEDActivo",
+		 								"url" : parte_url,
 		 								"text" : descripciones[0].conceptid
 		 								}]} ) 
 		 						else:
 		 							responseMA.update( {"ConceptosSNOMED": [{
-		 								"url" : parte_url+"SNOMEDInactivo",
+		 								"url" : parte_url,
 		 								"text" : descripciones[0].conceptid
 		 								}]} ) 
 		 					elif sinonimos:
 		 						concepto = ConceptS.objects.get(id = sinonimos[0].conceptid)
 		 						if concepto.active == '1':
 		 							responseMA.update( {"ConceptosSNOMED": [{
-		 								"url" : parte_url+"SNOMEDActivo",
+		 								"url" : parte_url,
 		 								"text" : sinonimos[0].conceptid
 		 								}]} ) 
 		 						else:
 		 							responseMA.update( {"ConceptosSNOMED": [{
-		 								"url" : parte_url+"SNOMEDInactivo",
+		 								"url" : parte_url,
 		 								"text" : sinonimos[0].conceptid
 		 								}]} ) 
 		 					else:
 		 						responseMA.update( {"ConceptosSNOMED": [{
-		 								"url" : parte_url+"SNOMED",
+		 								"url" : parte_url,
 		 								"text" : "0"
 		 								}]} ) 
 		 						if elemento_a_buscar != "":	 				
@@ -96,13 +96,13 @@ def ExtendSnomedArray(responseMA, recurso, propiedad):
 		 						concepto = ConceptS.objects.get(id = descripciones[0].conceptid)
 		 						if concepto.active == '1':
 		 							responseMA['ConceptosSNOMED'].append({
-		 							"url" : parte_url+"SNOMEDActivo",
+		 							"url" : parte_url,
 		 							"text" : descripciones[0].conceptid
 		 							} ) 
 		 							
 		 						else:
 		 							responseMA['ConceptosSNOMED'].append({
-		 							"url" : parte_url+"SNOMEDInactivo",
+		 							"url" : parte_url,
 		 							"text" : descripciones[0].conceptid
 		 							} ) 
 
@@ -110,17 +110,17 @@ def ExtendSnomedArray(responseMA, recurso, propiedad):
 		 						concepto = ConceptS.objects.get(id = sinonimos[0].conceptid)
 		 						if concepto.active == '1':
 		 							responseMA['ConceptosSNOMED'].append({
-		 							"url" : parte_url+"SNOMEDActivo",
+		 							"url" : parte_url,
 		 							"text" : sinonimos[0].conceptid
 		 							} ) 
 		 						else:
 		 							responseMA['ConceptosSNOMED'].append({
-		 							"url" : parte_url+"SNOMEDInactivo",
+		 							"url" : parte_url,
 		 							"text" : sinonimos[0].conceptid
 		 							} ) 
 		 					else:
 		 						responseMA['ConceptosSNOMED'].append({
-		 							"url" : parte_url+"SNOMED",
+		 							"url" : parte_url,
 		 							"text" : "0"
 		 							} ) 
 		 						if elemento_a_buscar != "":	 				
@@ -189,29 +189,29 @@ def ExtendSnomed(responseMA, recurso, propiedad):
 			concepto = ConceptS.objects.get(id = descripciones[0].conceptid)
 			if concepto.active == '1':
 				responseMA.update( {"ConceptosSNOMED": [{
-					"url" : parte_url+"SNOMEDActivo",
+					"url" : parte_url,
 					"text" : descripciones[0].conceptid
 					}]} ) 
 			else:
 				responseMA.update( {"ConceptosSNOMED": [{
-					"url" : parte_url+"SNOMEDInactivo",
+					"url" : parte_url,
 					"text" : descripciones[0].conceptid
 					}]} ) 
 		elif sinonimos:
 			concepto = ConceptS.objects.get(id = sinonimos[0].conceptid)
 			if concepto.active == '1':
 				responseMA.update( {"ConceptosSNOMED": [{
-					"url" : parte_url+"SNOMEDActivo",
+					"url" : parte_url,
 					"text" : sinonimos[0].conceptid
 					}]} ) 
 			else:
 				responseMA.update( {"ConceptosSNOMED": [{
-					"url" : parte_url+"SNOMEDInactivo",
+					"url" : parte_url,
 					"text" : sinonimos[0].conceptid
 					}]} ) 
 		else:
 			responseMA.update( {"ConceptosSNOMED": [{
-					"url" : parte_url+"SNOMED",
+					"url" : parte_url,
 					"text" : "0"
 					}]} ) 
 			if elemento_a_buscar != "":	 				
@@ -223,13 +223,13 @@ def ExtendSnomed(responseMA, recurso, propiedad):
 			concepto = ConceptS.objects.get(id = descripciones[0].conceptid)
 			if concepto.active == '1':
 				responseMA['ConceptosSNOMED'].append({
-				"url" : parte_url+"SNOMEDActivo",
+				"url" : parte_url,
 				"text" : descripciones[0].conceptid
 				} ) 
 				
 			else:
 				responseMA['ConceptosSNOMED'].append({
-				"url" : parte_url+"SNOMEDInactivo",
+				"url" : parte_url,
 				"text" : descripciones[0].conceptid
 				} ) 
 
@@ -237,17 +237,17 @@ def ExtendSnomed(responseMA, recurso, propiedad):
 			concepto = ConceptS.objects.get(id = sinonimos[0].conceptid)
 			if concepto.active == '1':
 				responseMA['ConceptosSNOMED'].append({
-				"url" : parte_url+"SNOMEDActivo",
+				"url" : parte_url,
 				"text" : sinonimos[0].conceptid
 				} ) 
 			else:
 				responseMA['ConceptosSNOMED'].append({
-				"url" : parte_url+"SNOMEDInactivo",
+				"url" : parte_url,
 				"text" : sinonimos[0].conceptid
 				} ) 
 		else:
 			responseMA['ConceptosSNOMED'].append({
-				"url" : parte_url+"SNOMED",
+				"url" : parte_url,
 				"text" : "0"
 				} ) 
 			if elemento_a_buscar != "":	 				
@@ -730,14 +730,14 @@ def ProcesarOracion2(frasePrueba, indexP, val, start_time):
 			for item in con_id:
 				if "ConceptosSNOMED" not in val['resource']:
 					val['resource'].update( {"ConceptosSNOMED": [{
-					"url" : "codeSNOMEDActivo "+str(indexP),
+					"url" : "conclusion "+str(indexP),
 					"id" : item[0],
 					"text" : item[1],
 					"FSN" : item[2]
 					}]} )
 				else:
 					val['resource']["ConceptosSNOMED"].append( {
-					"url" : "codeSNOMEDActivo "+str(indexP),
+					"url" : "conclusion "+str(indexP),
 					"id" : item[0],
 					"text" : item[1],
 					"FSN" : item[2]
@@ -747,14 +747,14 @@ def ProcesarOracion2(frasePrueba, indexP, val, start_time):
 			for item in con_id:
 				if "ConceptosSNOMED" not in val:
 					val.update( {"ConceptosSNOMED": [{
-					"url" : "codeSNOMEDActivo "+str(indexP),
+					"url" : "conclusion "+str(indexP),
 					"id" : item[0],
 					"text" : item[1],
 					"FSN" : item[2]
 					}]} )
 				else:
 					val["ConceptosSNOMED"].append( {
-					"url" : "codeSNOMEDActivo "+str(indexP),
+					"url" : "conculsion "+str(indexP),
 					"id" : item[0],
 					"text" : item[1],
 					"FSN" : item[2]
