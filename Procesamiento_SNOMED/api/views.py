@@ -963,6 +963,7 @@ def apiOverview(request):
 	}
 	return Response(api_urls)
 
+#funcion que se utiliza para procesar el bundle (ECE completo hasta esperar de cambios de Jarero)
 @api_view(['POST'])
 def ProcesarBundleView(request):
 	responseMA = request.data
@@ -1075,6 +1076,7 @@ def ProcesarObservationView(request):
 	else:
 		return Response(status=status.HTTP_400_BAD_REQUEST)
 
+#funcion que prueba el servicio de AWS
 @api_view(['POST'])
 def ProcesarAWSBundleView(request):
 	
@@ -1459,6 +1461,7 @@ def ProcesarAWSBundleView(request):
 	else:
 		return Response(status=status.HTTP_400_BAD_REQUEST)
 
+#funcion que ya no se usa
 @api_view(['POST'])
 def ProcesarBundleNFView(request):
 	responseMA = request.data
