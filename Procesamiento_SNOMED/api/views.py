@@ -32,6 +32,8 @@ from google.cloud import translate_v2
 from googletrans import Translator
 import threading
 
+#-----------Funciones para añadir la extensión de la información de los ids de conceptos de SNOMED para los distintos recursos
+
 def ExtendSnomedArray(responseMA, recurso, propiedad):
 	print("entre en array")
 	if recurso == "DiagnosticReport":
@@ -255,226 +257,10 @@ def ExtendSnomed(responseMA, recurso, propiedad):
 				if not existe:
 					ConceptosNoEncontrados.objects.create(concepto = elemento_a_buscar)
 
-def DiagnosticReport(responseMA):
+#----------Termina funciones para extensión de la información de los ids de conceptos de SNOMED 
 
-	start_time = time.time()
-	if 'conclusionCode' in responseMA:
-		if ('text' in responseMA['conclusionCode'] and 'coding' not in responseMA['conclusionCode']) \
-		or ('text' in responseMA['conclusionCode'] and 'coding' in responseMA['conclusionCode'] and 'system' not in responseMA['conclusionCode']['coding'] ) \
- 		or ('text' in responseMA['conclusionCode'] and 'coding' in responseMA['conclusionCode'] and 'system' in responseMA['conclusionCode']['coding'] and "snomed" not in responseMA['conclusionCode']['coding']['system'] ):
- 			if 'text' in responseMA['conclusionCode']:
- 				conclusionCode = normalize(responseMA['conclusionCode']['text'])
- 				#conclusionCode = normalize(codD['display'])
-		 		descripciones = DescriptionS.objects.filter(term = conclusionCode) & DescriptionS.objects.filter(category_id = 6)
-		 		sinonimos = Synonyms.objects.filter(term = conclusionCode)
-		 		if descripciones.count() > 1:
-		 			for i in descripciones:
-			 			con = ConceptS.objects.get(id = i.conceptid)
-			 			if con.active == '0':
-			 				descripciones = descripciones.exclude(id=i.id)
-			 	if sinonimos.count() > 1:
-		 			for i in sinonimos:
-			 			con = ConceptS.objects.get(id = i.conceptid)
-			 			if con.active == '0':
-			 				sinonimos = sinonimos.exclude(id=i.id)
-		 		if descripciones:
-		 			concepto = ConceptS.objects.get(id = descripciones[0].conceptid)
-		 			if concepto.active == '1':
-		 				responseMA.update( {"ConceptosSNOMED": [{
-		 					"url" : "conclusionCodeSNOMEDActivo",
-		 					"text" : descripciones[0].conceptid
-		 					}]} ) 
-		 			else:
-		 				responseMA.update( {"ConceptosSNOMED": [{
-		 					"url" : "conclusionCodeSNOMEDInactivo",
-		 					"text" : descripciones[0].conceptid
-		 					}]} ) 
-		 		elif sinonimos:
-		 			concepto = ConceptS.objects.get(id = sinonimos[0].conceptid)
-		 			if concepto.active == '1':
-		 				responseMA.update( {"ConceptosSNOMED": [{
-		 					"url" : "conclusionCodeSNOMEDActivo",
-		 					"text" : sinonimos[0].conceptid
-		 					}]} ) 
-		 			else:
-		 				responseMA.update( {"ConceptosSNOMED": [{
-		 					"url" : "conclusionCodeSNOMEDInactivo",
-		 					"text" : sinonimos[0].conceptid
-		 					}]} ) 
-		 		else:
-		 			responseMA.update( {"ConceptosSNOMED": [{
-		 					"url" : "conclusionCodeSNOMED",
-		 					"text" : "0"
-		 					}]} ) 
-		 			if conclusionCode != "":	 				
-			 			existe = ConceptosNoEncontrados.objects.filter(concepto = conclusionCode).first()
-			 			if not existe:
-			 				ConceptosNoEncontrados.objects.create(concepto = conclusionCode)
-	if 'conclusion' in responseMA:
- 		
- 		frasePrueba = responseMA['conclusion'].lower()
 
- 		stop_words = set(stopwords.words("spanish"))
- 		frase2 = ""
- 		tokens_frases1 = sent_tokenize(frasePrueba)
- 		frases_preprocesadas = Parallel(n_jobs=-1, prefer="threads")(delayed(Preprocesamiento)(indx, frases) for indx, frases in enumerate(tokens_frases1))
- 		frases_preprocesada_ordenada = Sort_0(frases_preprocesadas)
- 		for indx4, item in enumerate(frases_preprocesada_ordenada):
-		  if indx4 == 0:
-		    frase2 = frase2 + item[1].capitalize()
-		  else:
-		    frase2 = frase2 + " "+ item[1].capitalize()
- 		frasePrueba = copy.deepcopy(frase2)
- 		
- 		frasePrueba = frasePrueba.replace(', ', '. ').lower()
- 		tokens_frases = sent_tokenize(frasePrueba)
- 		fraseFinal = ""
- 		
- 		status_frases = []
- 		try:
-	 		if tokens_frases:
-	 			status_frases = Parallel(n_jobs=-1, prefer="threads")(delayed(ProcesarOracionFrecuentes)(frases, indx, responseMA, start_time) for indx, frases in enumerate(tokens_frases))
-	 			
-	 		lista_unos = [i2 for indx2, i2 in enumerate(status_frases) if i2[2] == 1]
-	 		lista_final = []
-	 		lista_final = Parallel(n_jobs=-1, prefer="threads")(delayed(ProcesarOracion2)(i[1], indx, responseMA, start_time) for indx, i in enumerate(status_frases) if i[2] == 0)
-	 		lista_unida = lista_unos + lista_final
-	 		lista_unida = Sort_0(lista_unida)
-
-	 		for indx3, item in enumerate(lista_unida):
-	 		  if indx3 == 0:
-	 		    fraseFinal = fraseFinal + item[1].capitalize()
-	 		  else:
-	 		    fraseFinal = fraseFinal + " "+ item[1].capitalize()
-	 		
- 		except Exception as e:
- 			responseMA.update({"Advertencia" : "Algunos caracteres del texto no se pudieron procesar."})
-
- 		if len(status_frases) != 0:
-	 		frase_original = responseMA['conclusion']
-	 		if frase_original[-1] != ".":
-	 			frase_original = frase_original + "."
-	 		if 'ConceptosSNOMED' in responseMA:
-		 			lista_conceptos_encontrados = responseMA['ConceptosSNOMED']
-		 			frase_con_ids = match_con_frase(frase_original, lista_conceptos_encontrados)
-		 			responseMA.update( {"conclusion": frase_con_ids} )
-	 		
-	print("--- %s seconds Resource DiagnosticReport alone ---" % (time.time() - start_time))	
-	return Response(responseMA)
-
-#función que procesa texto libre sin el procesamiento de concepts frecuentes
-def DiagnosticReportNF(responseMA):
-
-	start_time = time.time()
-	if 'conclusionCode' in responseMA:
-		ExtendSnomedArray(responseMA, "DiagnosticReport", "conclusionCode")
- 				
-	if 'conclusion' in responseMA:
- 		
- 		frasePrueba = responseMA['conclusion'].lower()
-
- 		stop_words = set(stopwords.words("spanish"))
- 		frase2 = ""
- 		tokens_frases1 = sent_tokenize(frasePrueba)
- 		frases_preprocesadas = Parallel(n_jobs=-1, prefer="threads")(delayed(Preprocesamiento)(indx, frases) for indx, frases in enumerate(tokens_frases1))
- 		frases_preprocesada_ordenada = Sort_0(frases_preprocesadas)
- 		for indx4, item in enumerate(frases_preprocesada_ordenada):
-		  if indx4 == 0:
-		    frase2 = frase2 + item[1].capitalize()
-		  else:
-		    frase2 = frase2 + " "+ item[1].capitalize()
- 		frasePrueba = copy.deepcopy(frase2)
- 		
- 		frasePrueba = frasePrueba.replace(', ', '. ').lower()
- 		tokens_frases = sent_tokenize(frasePrueba)
- 		fraseFinal = ""
- 		
- 		status_frases = []
- 		try:
-	 		if tokens_frases:
-	 			status_frases = [ [indx, frases, 0]  for indx, frases in enumerate(tokens_frases)]
-	 			#status_frases = Parallel(n_jobs=-1, prefer="threads")(delayed(ProcesarOracionFrecuentes)(frases, indx, responseMA, start_time) for indx, frases in enumerate(tokens_frases))
-	 			
-	 		lista_unos = [i2 for indx2, i2 in enumerate(status_frases) if i2[2] == 1]
-	 		lista_final = []
-	 		lista_final = Parallel(n_jobs=-1, prefer="threads")(delayed(ProcesarOracion2)(i[1], indx, responseMA, start_time) for indx, i in enumerate(status_frases) if i[2] == 0)
-	 		lista_unida = lista_unos + lista_final
-	 		lista_unida = Sort_0(lista_unida)
-
-	 		for indx3, item in enumerate(lista_unida):
-	 		  if indx3 == 0:
-	 		    fraseFinal = fraseFinal + item[1].capitalize()
-	 		  else:
-	 		    fraseFinal = fraseFinal + " "+ item[1].capitalize()
-	 		
- 		except Exception as e:
- 			responseMA.update({"Advertencia" : "Algunos caracteres del texto no se pudieron procesar."})
-
- 		if len(status_frases) != 0:
-	 		frase_original = responseMA['conclusion']
-	 		if frase_original[-1] != ".":
-	 			frase_original = frase_original + "."
-	 		if 'ConceptosSNOMED' in responseMA:
-		 			lista_conceptos_encontrados = responseMA['ConceptosSNOMED']
-		 			frase_con_ids = match_con_frase(frase_original, lista_conceptos_encontrados)
-		 			responseMA.update( {"conclusion": frase_con_ids} )
-	 		
-	print("--- %s seconds Resource DiagnosticReport alone ---" % (time.time() - start_time))	
-	return Response(responseMA)
-
-def Medication(responseMA):
-	start_time = time.time()
-	if 'code' in responseMA:
-		if ('text' in responseMA['code'] and 'coding' not in responseMA['code']) \
-		or ('text' in responseMA['code'] and 'coding' in responseMA['code'] and 'system' not in responseMA['code']['coding'] ) \
- 		or ('text' in responseMA['code'] and 'coding' in responseMA['code'] and 'system' in responseMA['code']['coding'] and "snomed" not in responseMA['code']['coding']['system'] ):
-
-			if 'text' in responseMA['code']:
-				ExtendSnomed(responseMA, "Medication", "code")
-				
-		print("--- %s seconds Resource Medication ---" % (time.time() - start_time))
-	return Response(responseMA)
-
-def Procedure(responseMA):
-	start_time = time.time()
-	if 'code' in responseMA:
-		if ('text' in responseMA['code'] and 'coding' not in responseMA['code']) \
-		or ('text' in responseMA['code'] and 'coding' in responseMA['code'] and 'system' not in responseMA['code']['coding'] ) \
- 		or ('text' in responseMA['code'] and 'coding' in responseMA['code'] and 'system' in responseMA['code']['coding'] and "snomed" not in responseMA['code']['coding']['system'] ):
-
-			if 'text' in responseMA['code']:
-				ExtendSnomed(responseMA, "Procedure", "code")
-
-		print("--- %s seconds Resource Procedure ---" % (time.time() - start_time))
-	return Response(responseMA)
-
-def MedicationAdministration(responseMA):
-	start_time = time.time()
-	if 'dosage' in responseMA:
- 		if 'method' in responseMA['dosage']:
- 			ExtendSnomed(responseMA, "MedicationAdministration", "method")
-	 		
-
-	if 'dosage' in responseMA:
- 		if 'route' in responseMA['dosage']:
- 			ExtendSnomed(responseMA, "MedicationAdministration", "route")
- 			
-	print("--- %s seconds Resource MedicationAdministration ---" % (time.time() - start_time))
-
-	return Response(responseMA)
-
-def Observation(responseMA):
-	start_time = time.time()
-	if 'code' in responseMA:
-		if ('text' in responseMA['code'] and 'coding' not in responseMA['code']) \
-		or ('text' in responseMA['code'] and 'coding' in responseMA['code'] and 'system' not in responseMA['code']['coding'] ) \
- 		or ('text' in responseMA['code'] and 'coding' in responseMA['code'] and 'system' in responseMA['code']['coding'] and "snomed" not in responseMA['code']['coding']['system'] ):
-			if 'text' in responseMA['code']:
-				ExtendSnomed(responseMA, "Observation", "code")
-				
-	print("--- %s seconds Resource Observation ---" % (time.time() - start_time))
-	return Response(responseMA)
-
+#----------Funciones auxiliares para ordenamiento de listas de acuerdo a un elemento
 
 def Sort_0(sub_li): 
 	sub_li.sort(key = lambda x: int(x[0]),reverse=False)
@@ -487,6 +273,11 @@ def Sort(sub_li):
 def Sort_4(sub_li): 
 	sub_li.sort(key = lambda x: x[4],reverse=True)
 	return sub_li
+
+#----------Termina funciones auxiliares para ordenamiento de listas de acuerdo a un elemento
+
+
+#----------Funciones para procesamiento de lenguaje natural para extracción de conceptos de SNOMED
 
 def match_con_frase(frase_original, lista_conceptos_encontrados):
 	l = lista_conceptos_encontrados
@@ -780,174 +571,13 @@ def ProcesarOracion2(frasePrueba, indexP, val, start_time):
 		return [indexP, frasePrueba, 1]
 	else:
 		return [indexP, frasePrueba2, 1]
+
+#----------Termina funciones para procesamiento de lenguaje natural para extracción de conceptos de SNOMED
 	
-def ProcesarOracionFrecuentes(frasePrueba, indexP, val, start_time):
-	# ---------TOKENIZAR POR PALABRAS LA FRASE A PROCESAR
-	stop_words = set(stopwords.words("spanish"))
-	tokens_palabras = word_tokenize(frasePrueba)#tokenizo por palabras la frase del texto libre
-	# ---------ELIMINAR STOPWORDS Y SUJETOS (NSUBJ)
-	filt_frasePrueba = [w for w in tokens_palabras if not w in stop_words]# se quitan las stopwords de los tokens(palabras)
-	# ---------GENERAR LISTA ANIDADA POR CADA TOKEN = [ID_DESCRIPCION, LARGO_PALABRAS]
-	id_terminos_de_token=[]
-	bd_tokens = TokensDiagnosticosFrecuentes.objects.raw("SELECT * FROM `api_tokensdiagnosticosfrecuentes` WHERE token IN %s", [tuple(filt_frasePrueba)])
-	
-	arfil = numpy.asarray(filt_frasePrueba)
-	for indx, i in enumerate(arfil):#por cada token en la frase
-		id_terminos_de_token.append([])
-		for j in bd_tokens:#por cada token en la bd
-			if j.token == i and j.largo_palabras_termino <=  len(filt_frasePrueba):#si token de frase esta en token de la instancia de la bd
-				id_terminos_de_token[indx].append([int(j.id_descripcion), j.largo_palabras_termino])#añado id de la descripcion que continee el token de la frase
-	max=0
-	#print("--- %s seconds etapa 3 bd frecuentes---" % (time.time() - start_time))
-	# ---------ELIMINAR DESCRIPCIONES QUE TENGAN MAS PALABRAS QUE LA DE LA FRASE A PROCESAR, ORDENAR CADA LISTA ANIDADA DE CADA TOKEN DE LARGO DE PALABRAS EN DESCRIPCION DE MANERA DESCENDENTE
-	for term in id_terminos_de_token:
-		Sort(term)	   
-	#print("--- %s seconds etapa 4 bd frecuentes---" % (time.time() - start_time))
 
-	# ---------IDENTIFICACIÓN DE DESCRIPCIONES QUE CONTENGAN AL TOKEN CON LA MISMA LONGITUD QU ELA FRASE PROCESADA
-	termino_correcto=[]
-	
-	ar = numpy.asarray(id_terminos_de_token)
-	ar2 = copy.deepcopy(ar)
-	
-	contador = 1
-	contador2 = 0
-	cont=0
-	for term in ar:
-		for tupla in term:
-			longitud_termino = tupla[1]
-			id_desc=tupla[0]
-			cont=1
-			for term2 in ar2[contador:]:
-				for tupla2 in term2:
-					if tupla2[0] == id_desc:
-						cont=cont+1
-			if cont == longitud_termino:
-				if tupla not in termino_correcto:
-					termino_correcto.append(tupla)
-		if contador != ar.size:
-			contador = contador + 1
-	#print("--- %s seconds etapa 5 bd frecuentes---" % (time.time() - start_time))
+#--------------------------Views de DRF para funcionamiento de la API----------------------
 
-	# ---------ELIMINAR REPETIDOS GENERADOS EN EL PROCESO INMEDIATO ANTERIOR
-	termino_correct_sin_repetido=[]
-	for term in termino_correcto:
-		if term[0] not in termino_correct_sin_repetido:
-			termino_correct_sin_repetido.append(term[0])
-	#print("--- %s seconds etapa 6 bd frecuentes ---" % (time.time() - start_time))
-
-	# ---------EXTRAER CONCEPTOS DE ACUERDO A LAS DESCRIPCIONES
-	conceptos = []
-	for term in termino_correct_sin_repetido:
-		desc = Descripciones_y_sinonimos.objects.filter(id =int(term))
-		conceptos.append([desc[0].conceptid, ])
-	data=""
-	#print("--- %s seconds etapa 7 bd frecuentes---" % (time.time() - start_time))
-
-	#---------VERIFICACION SI EL ORDEN DE PALABRAS EN LA DESCRIPCION Y FRASE ESTA TAL CUAL DE MANERA CONSECUTIVA
-	BooleanTalCual =[]
-	descSeguncon =[]
-	for conc in conceptos:
-		esta=0
-		descripciones = Descripciones_y_sinonimos.objects.filter(conceptid = str(conc[0]))
-		for descripcion in descripciones:
-			if str(descripcion.term).lower() in str(frasePrueba).lower():
-				esta=1
-				indice_inicial = str(frasePrueba).lower().find(str(descripcion.term).lower())
-				indice_final = indice_inicial + len(descripcion.term)
-				descSeguncon.append([descripcion.term, conc[0], indice_inicial, indice_final, len(descripcion.term)])
-		BooleanTalCual.append(esta)
-	
-	conceptos2 = []
-	agregar=0
-	for indexB, b in enumerate(BooleanTalCual):
-		agregar = 0
-		for indexC, c in enumerate(conceptos):
-			if b == 1:
-				agregar = 1
-		if agregar == 1:
-			conceptos2.append(conceptos[indexB])
-	#print("--- %s seconds etapa 8 bd frecuentes---" % (time.time() - start_time))
-	# ---------ELIMINAR CONCEPTOS QUE ESTAN CONTENIDO EN CONCEPTOS CON UNA DESCRIPCION MAYOR
-	conceptos3=[]
-	Sort_4(descSeguncon)
-
-	for elitem1 in descSeguncon[::-1]:
-		for elitem2 in descSeguncon[::-1]:
-			if elitem1 != elitem2:
-				if elitem2[2] >=  elitem1[2] and elitem2[2] <= elitem1[3] and elitem2[3] > elitem1[2] and elitem2[3] <= elitem1[3]:
-					
-					if elitem2 in descSeguncon:
-						descSeguncon.remove(elitem2)
-
-	for itemotro in descSeguncon:
-		if itemotro[1] not in conceptos3:
-			conceptos3.append(itemotro[1] )
-	frasePrueba2=""
-
-	aumento=0
-	#print("--- %s seconds etapa 9 bd frecuentes---" % (time.time() - start_time))
-	# ---------AÑADIR ENTRE GUIONES MEDIOS, LOS FSN DE LOS CONCEPTOS FINALES ENCONTRADOS
-	conta = 0
-	con_id=[]
-
-	for indxconc3, conc3 in enumerate(conceptos3):
-		descripciones = Descripciones_y_sinonimos.objects.filter(conceptid = str(conc3))
-		for descripcion in descripciones:
-			if str(descripcion.term).lower() in str(frasePrueba).lower():
-				conta=conta+1
-				if indxconc3 == 0:
-					frasePrueba2 = copy.deepcopy(frasePrueba)
-				indice_inicial = str(frasePrueba2).lower().find(str(descripcion.term).lower())
-				indice_final = indice_inicial + len(descripcion.term)
-				FSN = Descripciones_y_sinonimos.objects.get(conceptid = str(conc3), typeid = "900000000000003001")
-				con_id.append([str(conc3), descripcion.term, FSN.term])
-				frasePrueba2 = frasePrueba2[:(indice_final)] + ' <<'+FSN.conceptid+'>>' + frasePrueba2[(indice_final):]
-	#print("--- %s seconds etapa 10 bd frecuentes---" % (time.time() - start_time))
-	# ---------AÑADIR PROPIEDAD "ConceptosSNOMED" AL JSON PARA MOSTRAR CUANTOS CONCEPTOS SE ENCONTRARON Y SU ID		
-
-	if "fullUrl" in val:		
-		if len(con_id) >= 1:
-			for item in con_id:
-				if "ConceptosSNOMED" not in val['resource']:
-					val['resource'].update( {"ConceptosSNOMED": [{
-					"url" : "codeSNOMEDActivo "+str(indexP),
-					"id" : item[0],
-					"text" : item[1],
-					"FSN" : item[2]
-					}]} )
-				else:
-					val['resource']["ConceptosSNOMED"].append( {
-					"url" : "codeSNOMEDActivo "+str(indexP),
-					"id" : item[0],
-					"text" : item[1],
-					"FSN" : item[2]
-					} )
-	else:
-		if len(con_id) >= 1:
-			for item in con_id:
-				if "ConceptosSNOMED" not in val:
-					val.update( {"ConceptosSNOMED": [{
-					"url" : "codeSNOMEDActivo "+str(indexP),
-					"id" : item[0],
-					"text" : item[1],
-					"FSN" : item[2]
-					}]} )
-				else:
-					val["ConceptosSNOMED"].append( {
-					"url" : "codeSNOMEDActivo "+str(indexP),
-					"id" : item[0],
-					"text" : item[1],
-					"FSN" : item[2]
-					} )
-
-	if frasePrueba2 == "":
-		listaRetorno = [indexP, frasePrueba, 0]
-	
-	else:
-		listaRetorno = [indexP, frasePrueba2, 1]
-	return listaRetorno
-
+#funcion para retornar los endpoints de la API
 @api_view(['GET'])
 def apiOverview(request):
 	api_urls = {
@@ -963,7 +593,7 @@ def apiOverview(request):
 	}
 	return Response(api_urls)
 
-#funcion que se utiliza para procesar el bundle (ECE completo hasta esperar de cambios de Jarero)
+#funcion de Django Rest Framework con metodo POST que se utiliza para procesar el bundle (ECE completo hasta esperar de cambios de Dr. Jarero)
 @api_view(['POST'])
 def ProcesarBundleView(request):
 	responseMA = request.data
@@ -1012,6 +642,8 @@ def ProcesarBundleView(request):
 	else:
 		return Response(status=status.HTTP_400_BAD_REQUEST)
 
+
+#funcion de Django Rest Framework con metodo POST que se utiliza para procesar el recurso DiagnosticReport (Cambiar por recurso Condition por revision de Dr. Jarero)
 @api_view(['POST'])
 def ProcesarDiagnosticReportView(request):
 	responseMA = request.data
@@ -1025,6 +657,67 @@ def ProcesarDiagnosticReportView(request):
 	else:
 		return Response(status=status.HTTP_400_BAD_REQUEST)
 
+def DiagnosticReportNF(responseMA):
+
+	start_time = time.time()
+	if 'conclusionCode' in responseMA:
+		ExtendSnomedArray(responseMA, "DiagnosticReport", "conclusionCode")
+ 				
+	if 'conclusion' in responseMA:
+ 		
+ 		frasePrueba = responseMA['conclusion'].lower()
+
+ 		stop_words = set(stopwords.words("spanish"))
+ 		frase2 = ""
+ 		tokens_frases1 = sent_tokenize(frasePrueba)
+ 		frases_preprocesadas = Parallel(n_jobs=-1, prefer="threads")(delayed(Preprocesamiento)(indx, frases) for indx, frases in enumerate(tokens_frases1))
+ 		frases_preprocesada_ordenada = Sort_0(frases_preprocesadas)
+ 		for indx4, item in enumerate(frases_preprocesada_ordenada):
+		  if indx4 == 0:
+		    frase2 = frase2 + item[1].capitalize()
+		  else:
+		    frase2 = frase2 + " "+ item[1].capitalize()
+ 		frasePrueba = copy.deepcopy(frase2)
+ 		
+ 		frasePrueba = frasePrueba.replace(', ', '. ').lower()
+ 		tokens_frases = sent_tokenize(frasePrueba)
+ 		fraseFinal = ""
+ 		
+ 		status_frases = []
+ 		try:
+	 		if tokens_frases:
+	 			status_frases = [ [indx, frases, 0]  for indx, frases in enumerate(tokens_frases)]
+	 			#status_frases = Parallel(n_jobs=-1, prefer="threads")(delayed(ProcesarOracionFrecuentes)(frases, indx, responseMA, start_time) for indx, frases in enumerate(tokens_frases))
+	 			
+	 		lista_unos = [i2 for indx2, i2 in enumerate(status_frases) if i2[2] == 1]
+	 		lista_final = []
+	 		lista_final = Parallel(n_jobs=-1, prefer="threads")(delayed(ProcesarOracion2)(i[1], indx, responseMA, start_time) for indx, i in enumerate(status_frases) if i[2] == 0)
+	 		lista_unida = lista_unos + lista_final
+	 		lista_unida = Sort_0(lista_unida)
+
+	 		for indx3, item in enumerate(lista_unida):
+	 		  if indx3 == 0:
+	 		    fraseFinal = fraseFinal + item[1].capitalize()
+	 		  else:
+	 		    fraseFinal = fraseFinal + " "+ item[1].capitalize()
+	 		
+ 		except Exception as e:
+ 			responseMA.update({"Advertencia" : "Algunos caracteres del texto no se pudieron procesar."})
+
+ 		if len(status_frases) != 0:
+	 		frase_original = responseMA['conclusion']
+	 		if frase_original[-1] != ".":
+	 			frase_original = frase_original + "."
+	 		if 'ConceptosSNOMED' in responseMA:
+		 			lista_conceptos_encontrados = responseMA['ConceptosSNOMED']
+		 			frase_con_ids = match_con_frase(frase_original, lista_conceptos_encontrados)
+		 			responseMA.update( {"conclusion": frase_con_ids} )
+	 		
+	print("--- %s seconds Resource DiagnosticReport alone ---" % (time.time() - start_time))	
+	return Response(responseMA)
+
+
+#funcion de Django Rest Framework con metodo POST que se utiliza para procesar el recurso Medication (Se mantiene igual a lo propuesto por Dr. Jarero)
 @api_view(['POST'])
 def ProcesarMedicationView(request):
 	responseMA = request.data
@@ -1038,6 +731,21 @@ def ProcesarMedicationView(request):
 	else:
 		return Response(status=status.HTTP_400_BAD_REQUEST)
 
+def Medication(responseMA):
+	start_time = time.time()
+	if 'code' in responseMA:
+		if ('text' in responseMA['code'] and 'coding' not in responseMA['code']) \
+		or ('text' in responseMA['code'] and 'coding' in responseMA['code'] and 'system' not in responseMA['code']['coding'] ) \
+ 		or ('text' in responseMA['code'] and 'coding' in responseMA['code'] and 'system' in responseMA['code']['coding'] and "snomed" not in responseMA['code']['coding']['system'] ):
+
+			if 'text' in responseMA['code']:
+				ExtendSnomed(responseMA, "Medication", "code")
+				
+		print("--- %s seconds Resource Medication ---" % (time.time() - start_time))
+	return Response(responseMA)
+
+
+#funcion de Django Rest Framework con metodo POST que se utiliza para procesar el recurso MedicationAdministration (Cambio por recurso MedicationRequest)
 @api_view(['POST'])
 def ProcesarMedicationAdministrationView(request):
 	responseMA = request.data
@@ -1049,6 +757,23 @@ def ProcesarMedicationAdministrationView(request):
 	else:
 		return Response(status=status.HTTP_400_BAD_REQUEST)
 
+def MedicationAdministration(responseMA):
+	start_time = time.time()
+	if 'dosage' in responseMA:
+ 		if 'method' in responseMA['dosage']:
+ 			ExtendSnomed(responseMA, "MedicationAdministration", "method")
+	 		
+
+	if 'dosage' in responseMA:
+ 		if 'route' in responseMA['dosage']:
+ 			ExtendSnomed(responseMA, "MedicationAdministration", "route")
+ 			
+	print("--- %s seconds Resource MedicationAdministration ---" % (time.time() - start_time))
+
+	return Response(responseMA)
+
+
+#funcion de Django Rest Framework con metodo POST que se utiliza para procesar el recurso Procedure (Cambio por recurso CarePlan)
 @api_view(['POST'])
 def ProcesarProcedureView(request):
 	responseMA = request.data
@@ -1063,6 +788,21 @@ def ProcesarProcedureView(request):
 	else:
 		return Response(status=status.HTTP_400_BAD_REQUEST)
 
+def Procedure(responseMA):
+	start_time = time.time()
+	if 'code' in responseMA:
+		if ('text' in responseMA['code'] and 'coding' not in responseMA['code']) \
+		or ('text' in responseMA['code'] and 'coding' in responseMA['code'] and 'system' not in responseMA['code']['coding'] ) \
+ 		or ('text' in responseMA['code'] and 'coding' in responseMA['code'] and 'system' in responseMA['code']['coding'] and "snomed" not in responseMA['code']['coding']['system'] ):
+
+			if 'text' in responseMA['code']:
+				ExtendSnomed(responseMA, "Procedure", "code")
+
+		print("--- %s seconds Resource Procedure ---" % (time.time() - start_time))
+	return Response(responseMA)
+
+
+#funcion de Django Rest Framework con metodo POST que se utiliza para procesar el recurso Observation (Cambio por recurso Composition)
 @api_view(['POST'])
 def ProcesarObservationView(request):
 	responseMA = request.data
@@ -1076,7 +816,24 @@ def ProcesarObservationView(request):
 	else:
 		return Response(status=status.HTTP_400_BAD_REQUEST)
 
-#funcion que prueba el servicio de AWS
+def Observation(responseMA):
+	start_time = time.time()
+	if 'code' in responseMA:
+		if ('text' in responseMA['code'] and 'coding' not in responseMA['code']) \
+		or ('text' in responseMA['code'] and 'coding' in responseMA['code'] and 'system' not in responseMA['code']['coding'] ) \
+ 		or ('text' in responseMA['code'] and 'coding' in responseMA['code'] and 'system' in responseMA['code']['coding'] and "snomed" not in responseMA['code']['coding']['system'] ):
+			if 'text' in responseMA['code']:
+				ExtendSnomed(responseMA, "Observation", "code")
+				
+	print("--- %s seconds Resource Observation ---" % (time.time() - start_time))
+	return Response(responseMA)
+
+#-----------------------Terminan las Views de DRF para funcionamiento de la API
+
+
+#---------------Funciones de PRUEBA-----------
+
+#funcion que prueba el servicio de AWS, solo se uso para probar AWS
 @api_view(['POST'])
 def ProcesarAWSBundleView(request):
 	
@@ -1857,3 +1614,278 @@ def ProcesarBundleNFView(request):
 		 return Response(responseMA)
 	else:
 		return Response(status=status.HTTP_400_BAD_REQUEST)
+
+#funcion para prueba con optimizacion de conceptos frecuentes (al usar multihilos se dejo de probar)
+def DiagnosticReport(responseMA):
+
+	start_time = time.time()
+	if 'conclusionCode' in responseMA:
+		if ('text' in responseMA['conclusionCode'] and 'coding' not in responseMA['conclusionCode']) \
+		or ('text' in responseMA['conclusionCode'] and 'coding' in responseMA['conclusionCode'] and 'system' not in responseMA['conclusionCode']['coding'] ) \
+ 		or ('text' in responseMA['conclusionCode'] and 'coding' in responseMA['conclusionCode'] and 'system' in responseMA['conclusionCode']['coding'] and "snomed" not in responseMA['conclusionCode']['coding']['system'] ):
+ 			if 'text' in responseMA['conclusionCode']:
+ 				conclusionCode = normalize(responseMA['conclusionCode']['text'])
+ 				#conclusionCode = normalize(codD['display'])
+		 		descripciones = DescriptionS.objects.filter(term = conclusionCode) & DescriptionS.objects.filter(category_id = 6)
+		 		sinonimos = Synonyms.objects.filter(term = conclusionCode)
+		 		if descripciones.count() > 1:
+		 			for i in descripciones:
+			 			con = ConceptS.objects.get(id = i.conceptid)
+			 			if con.active == '0':
+			 				descripciones = descripciones.exclude(id=i.id)
+			 	if sinonimos.count() > 1:
+		 			for i in sinonimos:
+			 			con = ConceptS.objects.get(id = i.conceptid)
+			 			if con.active == '0':
+			 				sinonimos = sinonimos.exclude(id=i.id)
+		 		if descripciones:
+		 			concepto = ConceptS.objects.get(id = descripciones[0].conceptid)
+		 			if concepto.active == '1':
+		 				responseMA.update( {"ConceptosSNOMED": [{
+		 					"url" : "conclusionCodeSNOMEDActivo",
+		 					"text" : descripciones[0].conceptid
+		 					}]} ) 
+		 			else:
+		 				responseMA.update( {"ConceptosSNOMED": [{
+		 					"url" : "conclusionCodeSNOMEDInactivo",
+		 					"text" : descripciones[0].conceptid
+		 					}]} ) 
+		 		elif sinonimos:
+		 			concepto = ConceptS.objects.get(id = sinonimos[0].conceptid)
+		 			if concepto.active == '1':
+		 				responseMA.update( {"ConceptosSNOMED": [{
+		 					"url" : "conclusionCodeSNOMEDActivo",
+		 					"text" : sinonimos[0].conceptid
+		 					}]} ) 
+		 			else:
+		 				responseMA.update( {"ConceptosSNOMED": [{
+		 					"url" : "conclusionCodeSNOMEDInactivo",
+		 					"text" : sinonimos[0].conceptid
+		 					}]} ) 
+		 		else:
+		 			responseMA.update( {"ConceptosSNOMED": [{
+		 					"url" : "conclusionCodeSNOMED",
+		 					"text" : "0"
+		 					}]} ) 
+		 			if conclusionCode != "":	 				
+			 			existe = ConceptosNoEncontrados.objects.filter(concepto = conclusionCode).first()
+			 			if not existe:
+			 				ConceptosNoEncontrados.objects.create(concepto = conclusionCode)
+	if 'conclusion' in responseMA:
+ 		
+ 		frasePrueba = responseMA['conclusion'].lower()
+
+ 		stop_words = set(stopwords.words("spanish"))
+ 		frase2 = ""
+ 		tokens_frases1 = sent_tokenize(frasePrueba)
+ 		frases_preprocesadas = Parallel(n_jobs=-1, prefer="threads")(delayed(Preprocesamiento)(indx, frases) for indx, frases in enumerate(tokens_frases1))
+ 		frases_preprocesada_ordenada = Sort_0(frases_preprocesadas)
+ 		for indx4, item in enumerate(frases_preprocesada_ordenada):
+		  if indx4 == 0:
+		    frase2 = frase2 + item[1].capitalize()
+		  else:
+		    frase2 = frase2 + " "+ item[1].capitalize()
+ 		frasePrueba = copy.deepcopy(frase2)
+ 		
+ 		frasePrueba = frasePrueba.replace(', ', '. ').lower()
+ 		tokens_frases = sent_tokenize(frasePrueba)
+ 		fraseFinal = ""
+ 		
+ 		status_frases = []
+ 		try:
+	 		if tokens_frases:
+	 			status_frases = Parallel(n_jobs=-1, prefer="threads")(delayed(ProcesarOracionFrecuentes)(frases, indx, responseMA, start_time) for indx, frases in enumerate(tokens_frases))
+	 			
+	 		lista_unos = [i2 for indx2, i2 in enumerate(status_frases) if i2[2] == 1]
+	 		lista_final = []
+	 		lista_final = Parallel(n_jobs=-1, prefer="threads")(delayed(ProcesarOracion2)(i[1], indx, responseMA, start_time) for indx, i in enumerate(status_frases) if i[2] == 0)
+	 		lista_unida = lista_unos + lista_final
+	 		lista_unida = Sort_0(lista_unida)
+
+	 		for indx3, item in enumerate(lista_unida):
+	 		  if indx3 == 0:
+	 		    fraseFinal = fraseFinal + item[1].capitalize()
+	 		  else:
+	 		    fraseFinal = fraseFinal + " "+ item[1].capitalize()
+	 		
+ 		except Exception as e:
+ 			responseMA.update({"Advertencia" : "Algunos caracteres del texto no se pudieron procesar."})
+
+ 		if len(status_frases) != 0:
+	 		frase_original = responseMA['conclusion']
+	 		if frase_original[-1] != ".":
+	 			frase_original = frase_original + "."
+	 		if 'ConceptosSNOMED' in responseMA:
+		 			lista_conceptos_encontrados = responseMA['ConceptosSNOMED']
+		 			frase_con_ids = match_con_frase(frase_original, lista_conceptos_encontrados)
+		 			responseMA.update( {"conclusion": frase_con_ids} )
+	 		
+	print("--- %s seconds Resource DiagnosticReport alone ---" % (time.time() - start_time))	
+	return Response(responseMA)
+
+def ProcesarOracionFrecuentes(frasePrueba, indexP, val, start_time):
+	# ---------TOKENIZAR POR PALABRAS LA FRASE A PROCESAR
+	stop_words = set(stopwords.words("spanish"))
+	tokens_palabras = word_tokenize(frasePrueba)#tokenizo por palabras la frase del texto libre
+	# ---------ELIMINAR STOPWORDS Y SUJETOS (NSUBJ)
+	filt_frasePrueba = [w for w in tokens_palabras if not w in stop_words]# se quitan las stopwords de los tokens(palabras)
+	# ---------GENERAR LISTA ANIDADA POR CADA TOKEN = [ID_DESCRIPCION, LARGO_PALABRAS]
+	id_terminos_de_token=[]
+	bd_tokens = TokensDiagnosticosFrecuentes.objects.raw("SELECT * FROM `api_tokensdiagnosticosfrecuentes` WHERE token IN %s", [tuple(filt_frasePrueba)])
+	
+	arfil = numpy.asarray(filt_frasePrueba)
+	for indx, i in enumerate(arfil):#por cada token en la frase
+		id_terminos_de_token.append([])
+		for j in bd_tokens:#por cada token en la bd
+			if j.token == i and j.largo_palabras_termino <=  len(filt_frasePrueba):#si token de frase esta en token de la instancia de la bd
+				id_terminos_de_token[indx].append([int(j.id_descripcion), j.largo_palabras_termino])#añado id de la descripcion que continee el token de la frase
+	max=0
+	#print("--- %s seconds etapa 3 bd frecuentes---" % (time.time() - start_time))
+	# ---------ELIMINAR DESCRIPCIONES QUE TENGAN MAS PALABRAS QUE LA DE LA FRASE A PROCESAR, ORDENAR CADA LISTA ANIDADA DE CADA TOKEN DE LARGO DE PALABRAS EN DESCRIPCION DE MANERA DESCENDENTE
+	for term in id_terminos_de_token:
+		Sort(term)	   
+	#print("--- %s seconds etapa 4 bd frecuentes---" % (time.time() - start_time))
+
+	# ---------IDENTIFICACIÓN DE DESCRIPCIONES QUE CONTENGAN AL TOKEN CON LA MISMA LONGITUD QU ELA FRASE PROCESADA
+	termino_correcto=[]
+	
+	ar = numpy.asarray(id_terminos_de_token)
+	ar2 = copy.deepcopy(ar)
+	
+	contador = 1
+	contador2 = 0
+	cont=0
+	for term in ar:
+		for tupla in term:
+			longitud_termino = tupla[1]
+			id_desc=tupla[0]
+			cont=1
+			for term2 in ar2[contador:]:
+				for tupla2 in term2:
+					if tupla2[0] == id_desc:
+						cont=cont+1
+			if cont == longitud_termino:
+				if tupla not in termino_correcto:
+					termino_correcto.append(tupla)
+		if contador != ar.size:
+			contador = contador + 1
+	#print("--- %s seconds etapa 5 bd frecuentes---" % (time.time() - start_time))
+
+	# ---------ELIMINAR REPETIDOS GENERADOS EN EL PROCESO INMEDIATO ANTERIOR
+	termino_correct_sin_repetido=[]
+	for term in termino_correcto:
+		if term[0] not in termino_correct_sin_repetido:
+			termino_correct_sin_repetido.append(term[0])
+	#print("--- %s seconds etapa 6 bd frecuentes ---" % (time.time() - start_time))
+
+	# ---------EXTRAER CONCEPTOS DE ACUERDO A LAS DESCRIPCIONES
+	conceptos = []
+	for term in termino_correct_sin_repetido:
+		desc = Descripciones_y_sinonimos.objects.filter(id =int(term))
+		conceptos.append([desc[0].conceptid, ])
+	data=""
+	#print("--- %s seconds etapa 7 bd frecuentes---" % (time.time() - start_time))
+
+	#---------VERIFICACION SI EL ORDEN DE PALABRAS EN LA DESCRIPCION Y FRASE ESTA TAL CUAL DE MANERA CONSECUTIVA
+	BooleanTalCual =[]
+	descSeguncon =[]
+	for conc in conceptos:
+		esta=0
+		descripciones = Descripciones_y_sinonimos.objects.filter(conceptid = str(conc[0]))
+		for descripcion in descripciones:
+			if str(descripcion.term).lower() in str(frasePrueba).lower():
+				esta=1
+				indice_inicial = str(frasePrueba).lower().find(str(descripcion.term).lower())
+				indice_final = indice_inicial + len(descripcion.term)
+				descSeguncon.append([descripcion.term, conc[0], indice_inicial, indice_final, len(descripcion.term)])
+		BooleanTalCual.append(esta)
+	
+	conceptos2 = []
+	agregar=0
+	for indexB, b in enumerate(BooleanTalCual):
+		agregar = 0
+		for indexC, c in enumerate(conceptos):
+			if b == 1:
+				agregar = 1
+		if agregar == 1:
+			conceptos2.append(conceptos[indexB])
+	#print("--- %s seconds etapa 8 bd frecuentes---" % (time.time() - start_time))
+	# ---------ELIMINAR CONCEPTOS QUE ESTAN CONTENIDO EN CONCEPTOS CON UNA DESCRIPCION MAYOR
+	conceptos3=[]
+	Sort_4(descSeguncon)
+
+	for elitem1 in descSeguncon[::-1]:
+		for elitem2 in descSeguncon[::-1]:
+			if elitem1 != elitem2:
+				if elitem2[2] >=  elitem1[2] and elitem2[2] <= elitem1[3] and elitem2[3] > elitem1[2] and elitem2[3] <= elitem1[3]:
+					
+					if elitem2 in descSeguncon:
+						descSeguncon.remove(elitem2)
+
+	for itemotro in descSeguncon:
+		if itemotro[1] not in conceptos3:
+			conceptos3.append(itemotro[1] )
+	frasePrueba2=""
+
+	aumento=0
+	#print("--- %s seconds etapa 9 bd frecuentes---" % (time.time() - start_time))
+	# ---------AÑADIR ENTRE GUIONES MEDIOS, LOS FSN DE LOS CONCEPTOS FINALES ENCONTRADOS
+	conta = 0
+	con_id=[]
+
+	for indxconc3, conc3 in enumerate(conceptos3):
+		descripciones = Descripciones_y_sinonimos.objects.filter(conceptid = str(conc3))
+		for descripcion in descripciones:
+			if str(descripcion.term).lower() in str(frasePrueba).lower():
+				conta=conta+1
+				if indxconc3 == 0:
+					frasePrueba2 = copy.deepcopy(frasePrueba)
+				indice_inicial = str(frasePrueba2).lower().find(str(descripcion.term).lower())
+				indice_final = indice_inicial + len(descripcion.term)
+				FSN = Descripciones_y_sinonimos.objects.get(conceptid = str(conc3), typeid = "900000000000003001")
+				con_id.append([str(conc3), descripcion.term, FSN.term])
+				frasePrueba2 = frasePrueba2[:(indice_final)] + ' <<'+FSN.conceptid+'>>' + frasePrueba2[(indice_final):]
+	#print("--- %s seconds etapa 10 bd frecuentes---" % (time.time() - start_time))
+	# ---------AÑADIR PROPIEDAD "ConceptosSNOMED" AL JSON PARA MOSTRAR CUANTOS CONCEPTOS SE ENCONTRARON Y SU ID		
+
+	if "fullUrl" in val:		
+		if len(con_id) >= 1:
+			for item in con_id:
+				if "ConceptosSNOMED" not in val['resource']:
+					val['resource'].update( {"ConceptosSNOMED": [{
+					"url" : "codeSNOMEDActivo "+str(indexP),
+					"id" : item[0],
+					"text" : item[1],
+					"FSN" : item[2]
+					}]} )
+				else:
+					val['resource']["ConceptosSNOMED"].append( {
+					"url" : "codeSNOMEDActivo "+str(indexP),
+					"id" : item[0],
+					"text" : item[1],
+					"FSN" : item[2]
+					} )
+	else:
+		if len(con_id) >= 1:
+			for item in con_id:
+				if "ConceptosSNOMED" not in val:
+					val.update( {"ConceptosSNOMED": [{
+					"url" : "codeSNOMEDActivo "+str(indexP),
+					"id" : item[0],
+					"text" : item[1],
+					"FSN" : item[2]
+					}]} )
+				else:
+					val["ConceptosSNOMED"].append( {
+					"url" : "codeSNOMEDActivo "+str(indexP),
+					"id" : item[0],
+					"text" : item[1],
+					"FSN" : item[2]
+					} )
+
+	if frasePrueba2 == "":
+		listaRetorno = [indexP, frasePrueba, 0]
+	
+	else:
+		listaRetorno = [indexP, frasePrueba2, 1]
+	return listaRetorno
