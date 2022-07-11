@@ -32,236 +32,8 @@ from google.cloud import translate_v2
 from googletrans import Translator
 import threading
 
-#-----------Funciones para añadir la extensión de la información de los ids de conceptos de SNOMED para los distintos recursos
-
-def ExtendSnomedArray(responseMA, recurso, propiedad):
-	print("entre en array")
-	if recurso == "DiagnosticReport":
-		if propiedad == "conclusionCode":
-			categoria = 6
-			parte_url = "conclusionCode"
-			for val in responseMA['conclusionCode']:
-				if ('text' in val and 'coding' not in val) \
-				or ('text' in val and 'coding' in val and 'system' not in val['coding'] ) \
-		 		or ('text' in val and 'coding' in val and 'system' in val['coding'] and "snomed" not in val['coding']['system'] ):
-		 			if 'text' in val:
-		 				print("val[text]",val['text'])
-		 				elemento_a_buscar = normalize(val['text']) #conclusionCode de diagnosticReport es el elemento_a_buscar
-		 				descripciones = DescriptionS.objects.filter(term = elemento_a_buscar) & DescriptionS.objects.filter(category_id = categoria)
-		 				sinonimos = Synonyms.objects.filter(term = elemento_a_buscar)
-		 				if descripciones.count() > 1:
-		 					for i in descripciones:
-		 						con = ConceptS.objects.get(id = i.conceptid)
-		 						if con.active == '0':
-		 							descripciones = descripciones.exclude(id=i.id)
-		 				if sinonimos.count() > 1:
-		 					for i in sinonimos:
-		 						con = ConceptS.objects.get(id = i.conceptid)
-		 						if con.active == '0':
-		 							sinonimos = sinonimos.exclude(id=i.id)
-		 				if 'ConceptosSNOMED' not in responseMA:
-		 					if descripciones:
-		 						concepto = ConceptS.objects.get(id = descripciones[0].conceptid)
-		 						if concepto.active == '1':
-		 							responseMA.update( {"ConceptosSNOMED": [{
-		 								"url" : parte_url,
-		 								"text" : descripciones[0].conceptid
-		 								}]} ) 
-		 						else:
-		 							responseMA.update( {"ConceptosSNOMED": [{
-		 								"url" : parte_url,
-		 								"text" : descripciones[0].conceptid
-		 								}]} ) 
-		 					elif sinonimos:
-		 						concepto = ConceptS.objects.get(id = sinonimos[0].conceptid)
-		 						if concepto.active == '1':
-		 							responseMA.update( {"ConceptosSNOMED": [{
-		 								"url" : parte_url,
-		 								"text" : sinonimos[0].conceptid
-		 								}]} ) 
-		 						else:
-		 							responseMA.update( {"ConceptosSNOMED": [{
-		 								"url" : parte_url,
-		 								"text" : sinonimos[0].conceptid
-		 								}]} ) 
-		 					else:
-		 						responseMA.update( {"ConceptosSNOMED": [{
-		 								"url" : parte_url,
-		 								"text" : "0"
-		 								}]} ) 
-		 						if elemento_a_buscar != "":	 				
-		 							existe = ConceptosNoEncontrados.objects.filter(concepto = elemento_a_buscar).first()
-		 							if not existe:
-		 								ConceptosNoEncontrados.objects.create(concepto = elemento_a_buscar)
-		 				else:
-		 					if descripciones:
-		 						concepto = ConceptS.objects.get(id = descripciones[0].conceptid)
-		 						if concepto.active == '1':
-		 							responseMA['ConceptosSNOMED'].append({
-		 							"url" : parte_url,
-		 							"text" : descripciones[0].conceptid
-		 							} ) 
-		 							
-		 						else:
-		 							responseMA['ConceptosSNOMED'].append({
-		 							"url" : parte_url,
-		 							"text" : descripciones[0].conceptid
-		 							} ) 
-
-		 					elif sinonimos:
-		 						concepto = ConceptS.objects.get(id = sinonimos[0].conceptid)
-		 						if concepto.active == '1':
-		 							responseMA['ConceptosSNOMED'].append({
-		 							"url" : parte_url,
-		 							"text" : sinonimos[0].conceptid
-		 							} ) 
-		 						else:
-		 							responseMA['ConceptosSNOMED'].append({
-		 							"url" : parte_url,
-		 							"text" : sinonimos[0].conceptid
-		 							} ) 
-		 					else:
-		 						responseMA['ConceptosSNOMED'].append({
-		 							"url" : parte_url,
-		 							"text" : "0"
-		 							} ) 
-		 						if elemento_a_buscar != "":	 				
-		 							existe = ConceptosNoEncontrados.objects.filter(concepto = elemento_a_buscar).first()
-		 							if not existe:
-		 								ConceptosNoEncontrados.objects.create(concepto = elemento_a_buscar)
-
-#funcion para añadir extension de conceptossnomed a los recursos
-def ExtendSnomed(responseMA, recurso, propiedad):
-	if recurso == "DiagnosticReport":
-		if propiedad == "conclusionCode":
-			elemento_a_buscar = normalize(responseMA['conclusionCode']['text']) #conclusionCode de diagnosticReport es el elemento_a_buscar
-			categoria = 6
-			parte_url = "conclusionCode"
-	#cambiar todo "conclusionCode" por elemento_a_buscar y "category_id" por "categoria" y añadir parte_url = "conclusionCode"
-
-	elif recurso == "Medication":
-		if propiedad == "code":
-			elemento_a_buscar = normalize(responseMA['code']['text']) #code de Medication es el elemento_a_buscar
-			categoria = 10
-			parte_url = "code"
-	#cambiar todo "code" por elemento_a_buscar y "category_id" por "categoria" y añadir parte_url = "code"
-
-	elif recurso == "Procedure":
-		if propiedad == "code":
-			elemento_a_buscar = normalize(responseMA['code']['text']) #code de Procedure es el elemento_a_buscar
-			categoria = 4
-			parte_url = "code"
-	#cambiar todo "code" por elemento_a_buscar y "category_id" por "categoria" y añadir parte_url = "code"
-
-	elif recurso == "MedicationAdministration":
-		if propiedad == "method":
-			elemento_a_buscar = normalize(responseMA['dosage']['method']) #method de MedicationAdministration es el elemento_a_buscar
-			categoria = 8
-			parte_url = "method"
-	#cambiar todo "code" por elemento_a_buscar y "category_id" por "categoria" y añadir parte_url = "method"
-		if propiedad == "route":
-			elemento_a_buscar = normalize(responseMA['dosage']['route']) #route de MedicationAdministration es el elemento_a_buscar
-			categoria = 8
-			parte_url = "route"
-	#cambiar todo "code" por elemento_a_buscar y "category_id" por "categoria" y añadir parte_url = "route"
-
-	elif recurso == "Observation":
-		if propiedad == "code":
-			elemento_a_buscar = normalize(responseMA['code']['text']) #code de Observation es el elemento_a_buscar
-			parte_url = "code"
-	#cambiar todo "code" por elemento_a_buscar y "category_id" por "categoria" y añadir parte_url = "code"
-		
-	if recurso == "Observation":
-		descripciones = DescriptionS.objects.filter(term = elemento_a_buscar)
-	else:
-		descripciones = DescriptionS.objects.filter(term = elemento_a_buscar) & DescriptionS.objects.filter(category_id = categoria)
-	sinonimos = Synonyms.objects.filter(term = elemento_a_buscar)
-	if descripciones.count() > 1:
-		for i in descripciones:
-			con = ConceptS.objects.get(id = i.conceptid)
-			if con.active == '0':
-				descripciones = descripciones.exclude(id=i.id)
-	if sinonimos.count() > 1:
-		for i in sinonimos:
-			con = ConceptS.objects.get(id = i.conceptid)
-			if con.active == '0':
-				sinonimos = sinonimos.exclude(id=i.id)
-	if 'ConceptosSNOMED' not in responseMA:
-		if descripciones:
-			concepto = ConceptS.objects.get(id = descripciones[0].conceptid)
-			if concepto.active == '1':
-				responseMA.update( {"ConceptosSNOMED": [{
-					"url" : parte_url,
-					"text" : descripciones[0].conceptid
-					}]} ) 
-			else:
-				responseMA.update( {"ConceptosSNOMED": [{
-					"url" : parte_url,
-					"text" : descripciones[0].conceptid
-					}]} ) 
-		elif sinonimos:
-			concepto = ConceptS.objects.get(id = sinonimos[0].conceptid)
-			if concepto.active == '1':
-				responseMA.update( {"ConceptosSNOMED": [{
-					"url" : parte_url,
-					"text" : sinonimos[0].conceptid
-					}]} ) 
-			else:
-				responseMA.update( {"ConceptosSNOMED": [{
-					"url" : parte_url,
-					"text" : sinonimos[0].conceptid
-					}]} ) 
-		else:
-			responseMA.update( {"ConceptosSNOMED": [{
-					"url" : parte_url,
-					"text" : "0"
-					}]} ) 
-			if elemento_a_buscar != "":	 				
-				existe = ConceptosNoEncontrados.objects.filter(concepto = elemento_a_buscar).first()
-				if not existe:
-					ConceptosNoEncontrados.objects.create(concepto = elemento_a_buscar)
-	else:
-		if descripciones:
-			concepto = ConceptS.objects.get(id = descripciones[0].conceptid)
-			if concepto.active == '1':
-				responseMA['ConceptosSNOMED'].append({
-				"url" : parte_url,
-				"text" : descripciones[0].conceptid
-				} ) 
-				
-			else:
-				responseMA['ConceptosSNOMED'].append({
-				"url" : parte_url,
-				"text" : descripciones[0].conceptid
-				} ) 
-
-		elif sinonimos:
-			concepto = ConceptS.objects.get(id = sinonimos[0].conceptid)
-			if concepto.active == '1':
-				responseMA['ConceptosSNOMED'].append({
-				"url" : parte_url,
-				"text" : sinonimos[0].conceptid
-				} ) 
-			else:
-				responseMA['ConceptosSNOMED'].append({
-				"url" : parte_url,
-				"text" : sinonimos[0].conceptid
-				} ) 
-		else:
-			responseMA['ConceptosSNOMED'].append({
-				"url" : parte_url,
-				"text" : "0"
-				} ) 
-			if elemento_a_buscar != "":	 				
-				existe = ConceptosNoEncontrados.objects.filter(concepto = elemento_a_buscar).first()
-				if not existe:
-					ConceptosNoEncontrados.objects.create(concepto = elemento_a_buscar)
-
-#----------Termina funciones para extensión de la información de los ids de conceptos de SNOMED 
-
 
 #----------Funciones auxiliares para ordenamiento de listas de acuerdo a un elemento
-
 def Sort_0(sub_li): 
 	sub_li.sort(key = lambda x: int(x[0]),reverse=False)
 	return sub_li
@@ -277,8 +49,8 @@ def Sort_4(sub_li):
 #----------Termina funciones auxiliares para ordenamiento de listas de acuerdo a un elemento
 
 
-#----------Funciones para procesamiento de lenguaje natural para extracción de conceptos de SNOMED
 
+#----------Funciones para procesamiento de lenguaje natural para extracción de conceptos de SNOMED
 def match_con_frase(frase_original, lista_conceptos_encontrados):
 	l = lista_conceptos_encontrados
 	print("l", l)
@@ -310,6 +82,7 @@ def match_con_frase(frase_original, lista_conceptos_encontrados):
 	frase_con_ids = frase_original
 	return frase_con_ids
 
+# Funcion que preprocesa el texto libre para tratar 3 tipos de posiciones del adjetivo calificativo en un grupo sintagmatico nominal, vease documento excel "Frase a preprocesar.xlsx"
 def Preprocesamiento(indx, la_frase):
 	nlp = spacy.load('es_core_news_lg')
 	frase = la_frase
@@ -575,8 +348,8 @@ def ProcesarOracion2(frasePrueba, indexP, val, start_time):
 #----------Termina funciones para procesamiento de lenguaje natural para extracción de conceptos de SNOMED
 	
 
-#--------------------------Views de DRF para funcionamiento de la API----------------------
 
+#--------------------------Views de DRF para funcionamiento de la API----------------------
 #funcion para retornar los endpoints de la API
 @api_view(['GET'])
 def apiOverview(request):
@@ -829,6 +602,236 @@ def Observation(responseMA):
 	return Response(responseMA)
 
 #-----------------------Terminan las Views de DRF para funcionamiento de la API
+
+
+
+#-----------Funciones para añadir la extensión de la información de los ids de conceptos de SNOMED para los distintos recursos
+
+def ExtendSnomedArray(responseMA, recurso, propiedad):
+	print("entre en array")
+	if recurso == "DiagnosticReport":
+		if propiedad == "conclusionCode":
+			categoria = 6
+			parte_url = "conclusionCode"
+			for val in responseMA['conclusionCode']:
+				if ('text' in val and 'coding' not in val) \
+				or ('text' in val and 'coding' in val and 'system' not in val['coding'] ) \
+		 		or ('text' in val and 'coding' in val and 'system' in val['coding'] and "snomed" not in val['coding']['system'] ):
+		 			if 'text' in val:
+		 				print("val[text]",val['text'])
+		 				elemento_a_buscar = normalize(val['text']) #conclusionCode de diagnosticReport es el elemento_a_buscar
+		 				descripciones = DescriptionS.objects.filter(term = elemento_a_buscar) & DescriptionS.objects.filter(category_id = categoria)
+		 				sinonimos = Synonyms.objects.filter(term = elemento_a_buscar)
+		 				if descripciones.count() > 1:
+		 					for i in descripciones:
+		 						con = ConceptS.objects.get(id = i.conceptid)
+		 						if con.active == '0':
+		 							descripciones = descripciones.exclude(id=i.id)
+		 				if sinonimos.count() > 1:
+		 					for i in sinonimos:
+		 						con = ConceptS.objects.get(id = i.conceptid)
+		 						if con.active == '0':
+		 							sinonimos = sinonimos.exclude(id=i.id)
+		 				if 'ConceptosSNOMED' not in responseMA:
+		 					if descripciones:
+		 						concepto = ConceptS.objects.get(id = descripciones[0].conceptid)
+		 						if concepto.active == '1':
+		 							responseMA.update( {"ConceptosSNOMED": [{
+		 								"url" : parte_url,
+		 								"text" : descripciones[0].conceptid
+		 								}]} ) 
+		 						else:
+		 							responseMA.update( {"ConceptosSNOMED": [{
+		 								"url" : parte_url,
+		 								"text" : descripciones[0].conceptid
+		 								}]} ) 
+		 					elif sinonimos:
+		 						concepto = ConceptS.objects.get(id = sinonimos[0].conceptid)
+		 						if concepto.active == '1':
+		 							responseMA.update( {"ConceptosSNOMED": [{
+		 								"url" : parte_url,
+		 								"text" : sinonimos[0].conceptid
+		 								}]} ) 
+		 						else:
+		 							responseMA.update( {"ConceptosSNOMED": [{
+		 								"url" : parte_url,
+		 								"text" : sinonimos[0].conceptid
+		 								}]} ) 
+		 					else:
+		 						responseMA.update( {"ConceptosSNOMED": [{
+		 								"url" : parte_url,
+		 								"text" : "0"
+		 								}]} ) 
+		 						if elemento_a_buscar != "":	 				
+		 							existe = ConceptosNoEncontrados.objects.filter(concepto = elemento_a_buscar).first()
+		 							if not existe:
+		 								ConceptosNoEncontrados.objects.create(concepto = elemento_a_buscar)
+		 				else:
+		 					if descripciones:
+		 						concepto = ConceptS.objects.get(id = descripciones[0].conceptid)
+		 						if concepto.active == '1':
+		 							responseMA['ConceptosSNOMED'].append({
+		 							"url" : parte_url,
+		 							"text" : descripciones[0].conceptid
+		 							} ) 
+		 							
+		 						else:
+		 							responseMA['ConceptosSNOMED'].append({
+		 							"url" : parte_url,
+		 							"text" : descripciones[0].conceptid
+		 							} ) 
+
+		 					elif sinonimos:
+		 						concepto = ConceptS.objects.get(id = sinonimos[0].conceptid)
+		 						if concepto.active == '1':
+		 							responseMA['ConceptosSNOMED'].append({
+		 							"url" : parte_url,
+		 							"text" : sinonimos[0].conceptid
+		 							} ) 
+		 						else:
+		 							responseMA['ConceptosSNOMED'].append({
+		 							"url" : parte_url,
+		 							"text" : sinonimos[0].conceptid
+		 							} ) 
+		 					else:
+		 						responseMA['ConceptosSNOMED'].append({
+		 							"url" : parte_url,
+		 							"text" : "0"
+		 							} ) 
+		 						if elemento_a_buscar != "":	 				
+		 							existe = ConceptosNoEncontrados.objects.filter(concepto = elemento_a_buscar).first()
+		 							if not existe:
+		 								ConceptosNoEncontrados.objects.create(concepto = elemento_a_buscar)
+
+#funcion para añadir extension de conceptossnomed a los recursos
+def ExtendSnomed(responseMA, recurso, propiedad):
+	if recurso == "DiagnosticReport":
+		if propiedad == "conclusionCode":
+			elemento_a_buscar = normalize(responseMA['conclusionCode']['text']) #conclusionCode de diagnosticReport es el elemento_a_buscar
+			categoria = 6
+			parte_url = "conclusionCode"
+	#cambiar todo "conclusionCode" por elemento_a_buscar y "category_id" por "categoria" y añadir parte_url = "conclusionCode"
+
+	elif recurso == "Medication":
+		if propiedad == "code":
+			elemento_a_buscar = normalize(responseMA['code']['text']) #code de Medication es el elemento_a_buscar
+			categoria = 10
+			parte_url = "code"
+	#cambiar todo "code" por elemento_a_buscar y "category_id" por "categoria" y añadir parte_url = "code"
+
+	elif recurso == "Procedure":
+		if propiedad == "code":
+			elemento_a_buscar = normalize(responseMA['code']['text']) #code de Procedure es el elemento_a_buscar
+			categoria = 4
+			parte_url = "code"
+	#cambiar todo "code" por elemento_a_buscar y "category_id" por "categoria" y añadir parte_url = "code"
+
+	elif recurso == "MedicationAdministration":
+		if propiedad == "method":
+			elemento_a_buscar = normalize(responseMA['dosage']['method']) #method de MedicationAdministration es el elemento_a_buscar
+			categoria = 8
+			parte_url = "method"
+	#cambiar todo "code" por elemento_a_buscar y "category_id" por "categoria" y añadir parte_url = "method"
+		if propiedad == "route":
+			elemento_a_buscar = normalize(responseMA['dosage']['route']) #route de MedicationAdministration es el elemento_a_buscar
+			categoria = 8
+			parte_url = "route"
+	#cambiar todo "code" por elemento_a_buscar y "category_id" por "categoria" y añadir parte_url = "route"
+
+	elif recurso == "Observation":
+		if propiedad == "code":
+			elemento_a_buscar = normalize(responseMA['code']['text']) #code de Observation es el elemento_a_buscar
+			parte_url = "code"
+	#cambiar todo "code" por elemento_a_buscar y "category_id" por "categoria" y añadir parte_url = "code"
+		
+	if recurso == "Observation":
+		descripciones = DescriptionS.objects.filter(term = elemento_a_buscar)
+	else:
+		descripciones = DescriptionS.objects.filter(term = elemento_a_buscar) & DescriptionS.objects.filter(category_id = categoria)
+	sinonimos = Synonyms.objects.filter(term = elemento_a_buscar)
+	if descripciones.count() > 1:
+		for i in descripciones:
+			con = ConceptS.objects.get(id = i.conceptid)
+			if con.active == '0':
+				descripciones = descripciones.exclude(id=i.id)
+	if sinonimos.count() > 1:
+		for i in sinonimos:
+			con = ConceptS.objects.get(id = i.conceptid)
+			if con.active == '0':
+				sinonimos = sinonimos.exclude(id=i.id)
+	if 'ConceptosSNOMED' not in responseMA:
+		if descripciones:
+			concepto = ConceptS.objects.get(id = descripciones[0].conceptid)
+			if concepto.active == '1':
+				responseMA.update( {"ConceptosSNOMED": [{
+					"url" : parte_url,
+					"text" : descripciones[0].conceptid
+					}]} ) 
+			else:
+				responseMA.update( {"ConceptosSNOMED": [{
+					"url" : parte_url,
+					"text" : descripciones[0].conceptid
+					}]} ) 
+		elif sinonimos:
+			concepto = ConceptS.objects.get(id = sinonimos[0].conceptid)
+			if concepto.active == '1':
+				responseMA.update( {"ConceptosSNOMED": [{
+					"url" : parte_url,
+					"text" : sinonimos[0].conceptid
+					}]} ) 
+			else:
+				responseMA.update( {"ConceptosSNOMED": [{
+					"url" : parte_url,
+					"text" : sinonimos[0].conceptid
+					}]} ) 
+		else:
+			responseMA.update( {"ConceptosSNOMED": [{
+					"url" : parte_url,
+					"text" : "0"
+					}]} ) 
+			if elemento_a_buscar != "":	 				
+				existe = ConceptosNoEncontrados.objects.filter(concepto = elemento_a_buscar).first()
+				if not existe:
+					ConceptosNoEncontrados.objects.create(concepto = elemento_a_buscar)
+	else:
+		if descripciones:
+			concepto = ConceptS.objects.get(id = descripciones[0].conceptid)
+			if concepto.active == '1':
+				responseMA['ConceptosSNOMED'].append({
+				"url" : parte_url,
+				"text" : descripciones[0].conceptid
+				} ) 
+				
+			else:
+				responseMA['ConceptosSNOMED'].append({
+				"url" : parte_url,
+				"text" : descripciones[0].conceptid
+				} ) 
+
+		elif sinonimos:
+			concepto = ConceptS.objects.get(id = sinonimos[0].conceptid)
+			if concepto.active == '1':
+				responseMA['ConceptosSNOMED'].append({
+				"url" : parte_url,
+				"text" : sinonimos[0].conceptid
+				} ) 
+			else:
+				responseMA['ConceptosSNOMED'].append({
+				"url" : parte_url,
+				"text" : sinonimos[0].conceptid
+				} ) 
+		else:
+			responseMA['ConceptosSNOMED'].append({
+				"url" : parte_url,
+				"text" : "0"
+				} ) 
+			if elemento_a_buscar != "":	 				
+				existe = ConceptosNoEncontrados.objects.filter(concepto = elemento_a_buscar).first()
+				if not existe:
+					ConceptosNoEncontrados.objects.create(concepto = elemento_a_buscar)
+
+#----------Termina funciones para extensión de la información de los ids de conceptos de SNOMED 
+
 
 
 #---------------Funciones de PRUEBA-----------
