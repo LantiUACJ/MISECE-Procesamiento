@@ -406,7 +406,7 @@ def ProcesarBundleView(request):
 		 		#Observation(val['resource'])
 			 	print("--- %s seconds Resource Observation ---" % (time.time() - start_time))
 
-		 
+		 #Iniciar los threads para el procesamiento de las funciones y unirlas (join)
 		 for fun in funcs_to_run:
 		 	fun.start()
 
