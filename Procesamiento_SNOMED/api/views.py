@@ -349,8 +349,8 @@ def ProcesarOracion2(frasePrueba, indexP, val, start_time):
 	
 
 
-#--------------------------Views de DRF para funcionamiento de la API----------------------
-#funcion para retornar los endpoints de la API
+#--------------------------Views de DRF(Django Rest Framework) para funcionamiento de la API----------------------
+#funcion para retornar los endpoints de la API (sirve para validar conección de modulos)
 @api_view(['GET'])
 def apiOverview(request):
 	api_urls = {
@@ -375,40 +375,43 @@ def ProcesarBundleView(request):
 		
 		if (recurso == 'Bundle'):
 		 start_time = time.time()
-		 responseMA = request.data
+		 responseMA = request.data # Obtenemos el json posteado
 		 responseMA1 = copy.deepcopy(responseMA)
-		 for val in responseMA['entry']:
+		 funcs_to_run = []
+		 for val in responseMA['entry']:#recorremos el bundle para buscar los recursos que necsiten ser procesados
 		 	if "Medication" == val['resource']['resourceType']:
+
 		 		t = threading.Thread(target = Medication, args = (val['resource'],))
+		 		funcs_to_run.append(t)
 
 		 		#Medication(val['resource'])
 		 	if "MedicationAdministration" == val['resource']['resourceType']:
 		 		t2 = threading.Thread(target = MedicationAdministration, args = (val['resource'],))
+		 		funcs_to_run.append(t2)
 		 		#MedicationAdministration(val['resource'])
 		 	if "DiagnosticReport" == val['resource']['resourceType']:
 		 		#t3 = threading.Thread(target = DiagnosticReport, args = (val['resource'],))#utilizar esta linea para procesamiento de conceptos frecuentes
 		 		t3 = threading.Thread(target = DiagnosticReportNF, args = (val['resource'],))#
+		 		funcs_to_run.append(t3)
 		 		#DiagnosticReportNF(val['resource'])
 		 	
 		 	if "Procedure" == val['resource']['resourceType']:
 		 		t4 = threading.Thread(target = Procedure, args = (val['resource'],))
+		 		funcs_to_run.append(t4)
 		 		#Procedure(val['resource'])
 			 			
 		 	if "Observation" == val['resource']['resourceType']:
 		 		t5 = threading.Thread(target = Observation, args = (val['resource'],))
+		 		funcs_to_run.append(t5)
 		 		#Observation(val['resource'])
 			 	print("--- %s seconds Resource Observation ---" % (time.time() - start_time))
-		 t.start()
-		 t2.start()
-		 t3.start()
-		 t4.start()
-		 t5.start()
-		 t.join()
-		 t2.join()
-		 t3.join()
-		 t4.join()
-		 t5.join()
 
+		 
+		 for fun in funcs_to_run:
+		 	fun.start()
+
+		 for fun2 in funcs_to_run:
+		 	fun2.join()
 		 data=""
 		 print("--- %s seconds ---" % (time.time() - start_time))
 		 return Response(responseMA)
