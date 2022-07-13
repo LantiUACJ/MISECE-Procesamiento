@@ -32,6 +32,12 @@ from google.cloud import translate_v2
 from googletrans import Translator
 import threading
 
+# ver documento "Documentacion MISECE/Documentos Procesamiento SNOMED/Documentos al 11 de Julio del 2022/Proceso de Motor de Búsqueda SNOMED" para ver descripción del
+# proceso en general
+
+#Trabajo base para este desarrollo de moto de busqueda "Documentacion MISECE/Documentos Procesamiento SNOMED/Tesis-Guillermo-Ortiz"
+
+#Ejemplos de JSON de recursos para pruebas estan en "Documentacion MISECE/Documentos Procesamiento SNOMED/Recursos FHIR para pruebas"
 
 #----------Funciones auxiliares para ordenamiento de listas de acuerdo a un elemento
 def Sort_0(sub_li): 
@@ -84,6 +90,7 @@ def match_con_frase(frase_original, lista_conceptos_encontrados):
 	return frase_con_ids
 
 # Funcion que preprocesa el texto libre para tratar 3 tipos de posiciones del adjetivo calificativo en un grupo sintagmatico nominal, vease documento excel "Frase a preprocesar.xlsx"
+# ver documento "Documentacion MISECE/Documentos Procesamiento SNOMED/Frases a preprocesar.xlsx" para checar los tres tipos de posiciones del adjetivo contemplados (postponer, postponer con modificador (muy, mas y tan), anteponer entre preposicion)
 def Preprocesamiento(indx, la_frase):
 	nlp = spacy.load('es_core_news_lg')
 	frase = la_frase
