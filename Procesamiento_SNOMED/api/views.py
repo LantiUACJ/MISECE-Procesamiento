@@ -51,6 +51,7 @@ def Sort_4(sub_li):
 
 
 #----------Funciones para procesamiento de lenguaje natural para extracción de conceptos de SNOMED
+# Funcion para añadir el id del concepto SNOMED entre los simbolos "<<" y ">>"" y señalando con "→" la última palabra del concepto para que Marco añada el hover
 def match_con_frase(frase_original, lista_conceptos_encontrados):
 	l = lista_conceptos_encontrados
 	print("l", l)
@@ -157,7 +158,7 @@ def Preprocesamiento(indx, la_frase):
 		else:
 			break
 	return [indx, frase2]
-
+# Funcion para busqueda de conceptos SNOMED de texto libre
 def ProcesarOracion2(frasePrueba, indexP, val, start_time):
 	# ---------TOKENIZAR POR PALABRAS LA FRASE A PROCESAR
 	stop_words = set(stopwords.words("spanish"))
@@ -366,7 +367,7 @@ def apiOverview(request):
 	}
 	return Response(api_urls)
 
-#funcion de Django Rest Framework con metodo POST que se utiliza para procesar el bundle (ECE completo hasta esperar de cambios de Dr. Jarero)
+#funcion de Django Rest Framework con metodo POST que se utiliza para procesar el bundle el cual llama a las funcones de los recursos individualmente (ECE completo hasta esperar de cambios de Dr. Jarero)
 @api_view(['POST'])
 def ProcesarBundleView(request):
 	responseMA = request.data
@@ -609,7 +610,7 @@ def Observation(responseMA):
 
 
 #-----------Funciones para añadir la extensión de la información de los ids de conceptos de SNOMED para los distintos recursos
-
+#funcion para añadir extension de conceptossnomed a los recursos con propiedades con arreglos (pueden tener mas de un concepto)
 def ExtendSnomedArray(responseMA, recurso, propiedad):
 	print("entre en array")
 	if recurso == "DiagnosticReport":
@@ -706,7 +707,7 @@ def ExtendSnomedArray(responseMA, recurso, propiedad):
 		 							if not existe:
 		 								ConceptosNoEncontrados.objects.create(concepto = elemento_a_buscar)
 
-#funcion para añadir extension de conceptossnomed a los recursos
+#funcion para añadir extension de conceptossnomed a los recursos con propiedades individuales
 def ExtendSnomed(responseMA, recurso, propiedad):
 	if recurso == "DiagnosticReport":
 		if propiedad == "conclusionCode":
@@ -1729,6 +1730,7 @@ def DiagnosticReport(responseMA):
 	print("--- %s seconds Resource DiagnosticReport alone ---" % (time.time() - start_time))	
 	return Response(responseMA)
 
+#funcion para procesamiento de conceptos frecuentes  (al usar multihilos se dejo de probar)
 def ProcesarOracionFrecuentes(frasePrueba, indexP, val, start_time):
 	# ---------TOKENIZAR POR PALABRAS LA FRASE A PROCESAR
 	stop_words = set(stopwords.words("spanish"))
