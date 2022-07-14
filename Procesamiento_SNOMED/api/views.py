@@ -617,7 +617,7 @@ def Observation(responseMA):
 
 
 #-----------Funciones para añadir la extensión de la información de los ids de conceptos de SNOMED para los distintos recursos
-#funcion para añadir extension de conceptossnomed a los recursos con propiedades con arreglos (pueden tener mas de un concepto)
+#funcion para añadir extension de conceptossnomed a los recursos con propiedades con arreglos (pueden tener mas de un concepto) por ahora solo conclusionCode de DiagnosticReport
 def ExtendSnomedArray(responseMA, recurso, propiedad):
 	print("entre en array")
 	if recurso == "DiagnosticReport":
