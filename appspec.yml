@@ -1,0 +1,13 @@
+version: 0.0
+os: linux
+files:
+  - source: /
+    destination: /var/www/html/MISECE-Procesamiento
+file_exists_behavior: OVERWRITE
+hooks:
+  BeforeInstall:
+  AfterAllowTraffic:
+    - location: Scripts/run.sh
+      timeout: 120
+  ApplicationStart:
+  ApplicationStop:

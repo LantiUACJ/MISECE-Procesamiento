@@ -87,9 +87,11 @@ WSGI_APPLICATION = 'Procesamiento_SNOMED.wsgi.application'
 DATABASES = {
 'default': {
     'ENGINE': 'django.db.backends.mysql',
-    'NAME': 'db_snomed_snap',
-    'USER': 'root',
-    'PASSWORD': '',
+    'HOST': 'snomed.censxdy1aeyt.us-east-1.rds.amazonaws.com',
+    'PORT': '3306',
+    'NAME': 'db_snomed',
+    'USER': 'lanti',
+    'PASSWORD': 'YlQZgn5LgRBw9UYDz8yf133daA',
 }}
 
 """DATABASES = {
