@@ -302,14 +302,14 @@ def ProcesarOracion2(frasePrueba, indexP, val, start_time):
 			for item in con_id:
 				if "ConceptosSNOMED" not in val['resource']:
 					val['resource'].update( {"ConceptosSNOMED": [{
-					"url" : "conclusion "+str(indexP),
+					"url" : "text "+str(indexP),
 					"id" : item[0],
 					"text" : item[1],
 					"FSN" : item[2]
 					}]} )
 				else:
 					val['resource']["ConceptosSNOMED"].append( {
-					"url" : "conclusion "+str(indexP),
+					"url" : "text "+str(indexP),
 					"id" : item[0],
 					"text" : item[1],
 					"FSN" : item[2]
@@ -319,14 +319,14 @@ def ProcesarOracion2(frasePrueba, indexP, val, start_time):
 			for item in con_id:
 				if "ConceptosSNOMED" not in val:
 					val.update( {"ConceptosSNOMED": [{
-					"url" : "conclusion "+str(indexP),
+					"url" : "text "+str(indexP),
 					"id" : item[0],
 					"text" : item[1],
 					"FSN" : item[2]
 					}]} )
 				else:
 					val["ConceptosSNOMED"].append( {
-					"url" : "conculsion "+str(indexP),
+					"url" : "text "+str(indexP),
 					"id" : item[0],
 					"text" : item[1],
 					"FSN" : item[2]
@@ -363,6 +363,7 @@ def ProcesarOracion2(frasePrueba, indexP, val, start_time):
 def apiOverview(request):
 	api_urls = {
 		'ProcesarSNOMED Bundle': '/procesarSNOMED/Bundle',
+		'ProcesarSNOMED Condition': '/procesarSNOMED/Condition',
 		'ProcesarSNOMED DiagnosticReport': '/procesarSNOMED/DiagnosticReport',
 		'ProcesarSNOMED Medication': '/procesarSNOMED/Medication',
 		'ProcesarSNOMED MedicationAdministration': '/procesarSNOMED/MedicationAdministration',
@@ -498,6 +499,85 @@ def DiagnosticReportNF(responseMA):
 		 			responseMA.update( {"conclusion": frase_con_ids} )
 	 		
 	print("--- %s seconds Resource DiagnosticReport alone ---" % (time.time() - start_time))	
+	return Response(responseMA)
+
+
+@api_view(['POST'])
+def ProcesarConditionView(request):
+	responseMA = request.data
+	if (responseMA):
+		recurso = responseMA['resourceType']
+		if (recurso == 'Condition'):
+			Condition(responseMA)
+			return Response(responseMA)
+		else:
+			return Response(status=status.HTTP_400_BAD_REQUEST)
+	else:
+		return Response(status=status.HTTP_400_BAD_REQUEST)
+
+def Condition(responseMA):
+	start_time = time.time()
+
+	if 'code' in responseMA:
+		print("responseMA['code']['coding'][0]['system']", responseMA['code']['coding'][0]['system'])
+		print("type(responseMA['code']['coding'][0]['system'])", type(responseMA['code']['coding'][0]['system']))
+		if responseMA['code']['coding'][0]['system'].lower().find("snomed") != -1:
+			print("si esta")
+		else:
+			print("no esta")
+
+		if ('text' in responseMA['code'] and 'coding' not in responseMA['code']) \
+		or ('text' in responseMA['code'] and 'coding' in responseMA['code'] and 'system' not in responseMA['code']['coding'] ) \
+ 		or ('text' in responseMA['code'] and 'coding' in responseMA['code'] and 'system' in responseMA['code']['coding'] and responseMA['code']['coding'][0]['system'].lower().find("snomed") != -1 ):
+ 			if 'text' in responseMA['code']:
+ 				frasePrueba = responseMA['code']['text'].lower()
+		 		stop_words = set(stopwords.words("spanish"))
+		 		frase2 = ""
+		 		tokens_frases1 = sent_tokenize(frasePrueba)
+		 		frases_preprocesadas = Parallel(n_jobs=-1, prefer="threads")(delayed(Preprocesamiento)(indx, frases) for indx, frases in enumerate(tokens_frases1))
+		 		frases_preprocesada_ordenada = Sort_0(frases_preprocesadas)
+		 		for indx4, item in enumerate(frases_preprocesada_ordenada):
+				  if indx4 == 0:
+				    frase2 = frase2 + item[1].capitalize()
+				  else:
+				    frase2 = frase2 + " "+ item[1].capitalize()
+		 		frasePrueba = copy.deepcopy(frase2)
+		 		
+		 		frasePrueba = frasePrueba.replace(', ', '. ').lower()
+		 		tokens_frases = sent_tokenize(frasePrueba)
+		 		fraseFinal = ""
+ 		
+		 		status_frases = []
+		 		try:
+			 		if tokens_frases:
+			 			status_frases = [ [indx, frases, 0]  for indx, frases in enumerate(tokens_frases)]
+			 			#status_frases = Parallel(n_jobs=-1, prefer="threads")(delayed(ProcesarOracionFrecuentes)(frases, indx, responseMA, start_time) for indx, frases in enumerate(tokens_frases))
+			 			
+			 		lista_unos = [i2 for indx2, i2 in enumerate(status_frases) if i2[2] == 1]
+			 		lista_final = []
+			 		lista_final = Parallel(n_jobs=-1, prefer="threads")(delayed(ProcesarOracion2)(i[1], indx, responseMA, start_time) for indx, i in enumerate(status_frases) if i[2] == 0)
+			 		lista_unida = lista_unos + lista_final
+			 		lista_unida = Sort_0(lista_unida)
+
+			 		for indx3, item in enumerate(lista_unida):
+			 		  if indx3 == 0:
+			 		    fraseFinal = fraseFinal + item[1].capitalize()
+			 		  else:
+			 		    fraseFinal = fraseFinal + " "+ item[1].capitalize()
+			 		
+		 		except Exception as e:
+		 			responseMA.update({"Advertencia" : "Algunos caracteres del texto no se pudieron procesar."})
+
+		 		if len(status_frases) != 0:
+			 		frase_original = responseMA['code']['text']
+			 		if frase_original[-1] != ".":
+			 			frase_original = frase_original + "."
+			 		if 'ConceptosSNOMED' in responseMA:
+				 			lista_conceptos_encontrados = responseMA['ConceptosSNOMED']
+				 			frase_con_ids = match_con_frase(frase_original, lista_conceptos_encontrados)
+				 			responseMA.update( {"conclusion": frase_con_ids} )
+	 		
+	print("--- %s seconds Resource Condition alone ---" % (time.time() - start_time))	
 	return Response(responseMA)
 
 
