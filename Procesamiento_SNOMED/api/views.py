@@ -519,17 +519,15 @@ def Condition(responseMA):
 	start_time = time.time()
 
 	if 'code' in responseMA:
-		print("responseMA['code']['coding'][0]['system']", responseMA['code']['coding'][0]['system'])
-		print("type(responseMA['code']['coding'][0]['system'])", type(responseMA['code']['coding'][0]['system']))
-		if responseMA['code']['coding'][0]['system'].lower().find("snomed") != -1:
-			print("si esta")
-		else:
-			print("no esta")
+		
 
 		if ('text' in responseMA['code'] and 'coding' not in responseMA['code']) \
 		or ('text' in responseMA['code'] and 'coding' in responseMA['code'] and 'system' not in responseMA['code']['coding'] ) \
- 		or ('text' in responseMA['code'] and 'coding' in responseMA['code'] and 'system' in responseMA['code']['coding'] and responseMA['code']['coding'][0]['system'].lower().find("snomed") != -1 ):
- 			if 'text' in responseMA['code']:
+ 		or ('text' in responseMA['code'] and 'coding' in responseMA['code'] and 'system' in responseMA['code']['coding']):
+
+ 			if responseMA['code']['coding'][0]['system'].lower().find("snomed") != -1:
+ 				return Response(responseMA)
+ 			else:
  				frasePrueba = responseMA['code']['text'].lower()
 		 		stop_words = set(stopwords.words("spanish"))
 		 		frase2 = ""
