@@ -403,6 +403,12 @@ def ProcesarBundleView(request):
 		 		t3 = threading.Thread(target = DiagnosticReportNF, args = (val['resource'],))#
 		 		funcs_to_run.append(t3)
 		 		#DiagnosticReportNF(val['resource'])
+
+		 	if "Condition" == val['resource']['resourceType']:
+		 		#t3 = threading.Thread(target = DiagnosticReport, args = (val['resource'],))#utilizar esta linea para procesamiento de conceptos frecuentes
+		 		t3 = threading.Thread(target = Condition, args = (val['resource'],))#
+		 		funcs_to_run.append(t3)
+		 		#DiagnosticReportNF(val['resource'])
 		 	
 		 	if "Procedure" == val['resource']['resourceType']:
 		 		t4 = threading.Thread(target = Procedure, args = (val['resource'],))
@@ -525,55 +531,57 @@ def Condition(responseMA):
 		or ('text' in responseMA['code'] and 'coding' in responseMA['code'] and 'system' not in responseMA['code']['coding'] ) \
  		or ('text' in responseMA['code'] and 'coding' in responseMA['code'] and 'system' in responseMA['code']['coding']):
 
- 			if responseMA['code']['coding'][0]['system'].lower().find("snomed") != -1:
- 				return Response(responseMA)
- 			else:
- 				frasePrueba = responseMA['code']['text'].lower()
-		 		stop_words = set(stopwords.words("spanish"))
-		 		frase2 = ""
-		 		tokens_frases1 = sent_tokenize(frasePrueba)
-		 		frases_preprocesadas = Parallel(n_jobs=-1, prefer="threads")(delayed(Preprocesamiento)(indx, frases) for indx, frases in enumerate(tokens_frases1))
-		 		frases_preprocesada_ordenada = Sort_0(frases_preprocesadas)
-		 		for indx4, item in enumerate(frases_preprocesada_ordenada):
-				  if indx4 == 0:
-				    frase2 = frase2 + item[1].capitalize()
-				  else:
-				    frase2 = frase2 + " "+ item[1].capitalize()
-		 		frasePrueba = copy.deepcopy(frase2)
-		 		
-		 		frasePrueba = frasePrueba.replace(', ', '. ').lower()
-		 		tokens_frases = sent_tokenize(frasePrueba)
-		 		fraseFinal = ""
+ 			for inx, ec in enumerate(responseMA['code']['coding']):
+ 				if 'system' in responseMA['code']['coding'][inx]:
+ 					if responseMA['code']['coding'][inx]['system'].lower().find("snomed") != -1:
+ 						return Response(responseMA)
  		
-		 		status_frases = []
-		 		try:
-			 		if tokens_frases:
-			 			status_frases = [ [indx, frases, 0]  for indx, frases in enumerate(tokens_frases)]
-			 			#status_frases = Parallel(n_jobs=-1, prefer="threads")(delayed(ProcesarOracionFrecuentes)(frases, indx, responseMA, start_time) for indx, frases in enumerate(tokens_frases))
-			 			
-			 		lista_unos = [i2 for indx2, i2 in enumerate(status_frases) if i2[2] == 1]
-			 		lista_final = []
-			 		lista_final = Parallel(n_jobs=-1, prefer="threads")(delayed(ProcesarOracion2)(i[1], indx, responseMA, start_time) for indx, i in enumerate(status_frases) if i[2] == 0)
-			 		lista_unida = lista_unos + lista_final
-			 		lista_unida = Sort_0(lista_unida)
+	 		frasePrueba = responseMA['code']['text'].lower()
+	 		stop_words = set(stopwords.words("spanish"))
+	 		frase2 = ""
+	 		tokens_frases1 = sent_tokenize(frasePrueba)
+	 		frases_preprocesadas = Parallel(n_jobs=-1, prefer="threads")(delayed(Preprocesamiento)(indx, frases) for indx, frases in enumerate(tokens_frases1))
+	 		frases_preprocesada_ordenada = Sort_0(frases_preprocesadas)
+	 		for indx4, item in enumerate(frases_preprocesada_ordenada):
+			  if indx4 == 0:
+			    frase2 = frase2 + item[1].capitalize()
+			  else:
+			    frase2 = frase2 + " "+ item[1].capitalize()
+	 		frasePrueba = copy.deepcopy(frase2)
+	 		
+	 		frasePrueba = frasePrueba.replace(', ', '. ').lower()
+	 		tokens_frases = sent_tokenize(frasePrueba)
+	 		fraseFinal = ""
+		
+	 		status_frases = []
+	 		try:
+		 		if tokens_frases:
+		 			status_frases = [ [indx, frases, 0]  for indx, frases in enumerate(tokens_frases)]
+		 			#status_frases = Parallel(n_jobs=-1, prefer="threads")(delayed(ProcesarOracionFrecuentes)(frases, indx, responseMA, start_time) for indx, frases in enumerate(tokens_frases))
+		 			
+		 		lista_unos = [i2 for indx2, i2 in enumerate(status_frases) if i2[2] == 1]
+		 		lista_final = []
+		 		lista_final = Parallel(n_jobs=-1, prefer="threads")(delayed(ProcesarOracion2)(i[1], indx, responseMA, start_time) for indx, i in enumerate(status_frases) if i[2] == 0)
+		 		lista_unida = lista_unos + lista_final
+		 		lista_unida = Sort_0(lista_unida)
 
-			 		for indx3, item in enumerate(lista_unida):
-			 		  if indx3 == 0:
-			 		    fraseFinal = fraseFinal + item[1].capitalize()
-			 		  else:
-			 		    fraseFinal = fraseFinal + " "+ item[1].capitalize()
-			 		
-		 		except Exception as e:
-		 			responseMA.update({"Advertencia" : "Algunos caracteres del texto no se pudieron procesar."})
+		 		for indx3, item in enumerate(lista_unida):
+		 		  if indx3 == 0:
+		 		    fraseFinal = fraseFinal + item[1].capitalize()
+		 		  else:
+		 		    fraseFinal = fraseFinal + " "+ item[1].capitalize()
+		 		
+	 		except Exception as e:
+	 			responseMA.update({"Advertencia" : "Algunos caracteres del texto no se pudieron procesar."})
 
-		 		if len(status_frases) != 0:
-			 		frase_original = responseMA['code']['text']
-			 		if frase_original[-1] != ".":
-			 			frase_original = frase_original + "."
-			 		if 'ConceptosSNOMED' in responseMA:
-				 			lista_conceptos_encontrados = responseMA['ConceptosSNOMED']
-				 			frase_con_ids = match_con_frase(frase_original, lista_conceptos_encontrados)
-				 			responseMA.update( {"conclusion": frase_con_ids} )
+	 		if len(status_frases) != 0:
+		 		frase_original = responseMA['code']['text']
+		 		if frase_original[-1] != ".":
+		 			frase_original = frase_original + "."
+		 		if 'ConceptosSNOMED' in responseMA:
+			 			lista_conceptos_encontrados = responseMA['ConceptosSNOMED']
+			 			frase_con_ids = match_con_frase(frase_original, lista_conceptos_encontrados)
+			 			responseMA['code'].update( {"text": frase_con_ids} )
 	 		
 	print("--- %s seconds Resource Condition alone ---" % (time.time() - start_time))	
 	return Response(responseMA)
@@ -598,10 +606,13 @@ def Medication(responseMA):
 	if 'code' in responseMA:
 		if ('text' in responseMA['code'] and 'coding' not in responseMA['code']) \
 		or ('text' in responseMA['code'] and 'coding' in responseMA['code'] and 'system' not in responseMA['code']['coding'] ) \
- 		or ('text' in responseMA['code'] and 'coding' in responseMA['code'] and 'system' in responseMA['code']['coding'] and "snomed" not in responseMA['code']['coding']['system'] ):
-
-			if 'text' in responseMA['code']:
-				ExtendSnomed(responseMA, "Medication", "code")
+ 		or ('text' in responseMA['code'] and 'coding' in responseMA['code'] and 'system' in responseMA['code']['coding']):
+ 			for inx, ec in enumerate(responseMA['code']['coding']):
+ 				if 'system' in responseMA['code']['coding'][inx]:
+ 					if responseMA['code']['coding'][inx]['system'].lower().find("snomed") != -1:
+ 						return Response(responseMA)
+ 			if 'text' in responseMA['code']:
+ 				ExtendSnomed(responseMA, "Medication", "code")
 				
 		print("--- %s seconds Resource Medication ---" % (time.time() - start_time))
 	return Response(responseMA)
@@ -656,9 +667,12 @@ def Procedure(responseMA):
 		if ('text' in responseMA['code'] and 'coding' not in responseMA['code']) \
 		or ('text' in responseMA['code'] and 'coding' in responseMA['code'] and 'system' not in responseMA['code']['coding'] ) \
  		or ('text' in responseMA['code'] and 'coding' in responseMA['code'] and 'system' in responseMA['code']['coding'] and "snomed" not in responseMA['code']['coding']['system'] ):
-
-			if 'text' in responseMA['code']:
-				ExtendSnomed(responseMA, "Procedure", "code")
+ 			for inx, ec in enumerate(responseMA['code']['coding']):
+ 				if 'system' in responseMA['code']['coding'][inx]:
+ 					if responseMA['code']['coding'][inx]['system'].lower().find("snomed") != -1:
+ 						return Response(responseMA)
+ 			if 'text' in responseMA['code']:
+ 				ExtendSnomed(responseMA, "Procedure", "code")
 
 		print("--- %s seconds Resource Procedure ---" % (time.time() - start_time))
 	return Response(responseMA)
@@ -684,6 +698,10 @@ def Observation(responseMA):
 		if ('text' in responseMA['code'] and 'coding' not in responseMA['code']) \
 		or ('text' in responseMA['code'] and 'coding' in responseMA['code'] and 'system' not in responseMA['code']['coding'] ) \
  		or ('text' in responseMA['code'] and 'coding' in responseMA['code'] and 'system' in responseMA['code']['coding'] and "snomed" not in responseMA['code']['coding']['system'] ):
+			for inx, ec in enumerate(responseMA['code']['coding']):
+ 				if 'system' in responseMA['code']['coding'][inx]:
+ 					if responseMA['code']['coding'][inx]['system'].lower().find("snomed") != -1:
+ 						return Response(responseMA)
 			if 'text' in responseMA['code']:
 				ExtendSnomed(responseMA, "Observation", "code")
 				
