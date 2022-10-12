@@ -354,18 +354,17 @@ def ProcesarOracion2(frasePrueba, indexP, val, start_time):
 		return [indexP, frasePrueba2, 1]
 
 #----------Termina funciones para procesamiento de lenguaje natural para extracción de conceptos de SNOMED
-	
-
-
 #--------------------------Views de DRF(Django Rest Framework) para funcionamiento de la API----------------------
 #funcion para retornar los endpoints de la API (sirve para validar conección de modulos)
 @api_view(['GET'])
 def apiOverview(request):
 	api_urls = {
 		'ProcesarSNOMED Bundle': '/procesarSNOMED/Bundle',
+		'ProcesarSNOMED Allergy': '/procesarSNOMED/Allergy',
 		'ProcesarSNOMED Condition': '/procesarSNOMED/Condition',
 		'ProcesarSNOMED DiagnosticReport': '/procesarSNOMED/DiagnosticReport',
 		'ProcesarSNOMED Medication': '/procesarSNOMED/Medication',
+		'ProcesarSNOMED MedicationRequest': '/procesarSNOMED/MedicationRequest',
 		'ProcesarSNOMED MedicationAdministration': '/procesarSNOMED/MedicationAdministration',
 		'ProcesarSNOMED Procedure': '/procesarSNOMED/Procedure',
 		'ProcesarSNOMED Observation': '/procesarSNOMED/Observation',
@@ -398,6 +397,14 @@ def ProcesarBundleView(request):
 		 		t2 = threading.Thread(target = MedicationAdministration, args = (val['resource'],))
 		 		funcs_to_run.append(t2)
 		 		#MedicationAdministration(val['resource'])
+
+            
+		 		#Medication(val['resource'])
+		 	if "MedicationRequest" == val['resource']['resourceType']:
+		 		t8 = threading.Thread(target = MedicationRequest, args = (val['resource'],))
+		 		funcs_to_run.append(t8)
+		 		#MedicationAdministration(val['resource']) 
+
 		 	if "DiagnosticReport" == val['resource']['resourceType']:
 		 		#t3 = threading.Thread(target = DiagnosticReport, args = (val['resource'],))#utilizar esta linea para procesamiento de conceptos frecuentes
 		 		t3 = threading.Thread(target = DiagnosticReportNF, args = (val['resource'],))#
@@ -406,18 +413,24 @@ def ProcesarBundleView(request):
 
 		 	if "Condition" == val['resource']['resourceType']:
 		 		#t3 = threading.Thread(target = DiagnosticReport, args = (val['resource'],))#utilizar esta linea para procesamiento de conceptos frecuentes
-		 		t3 = threading.Thread(target = Condition, args = (val['resource'],))#
-		 		funcs_to_run.append(t3)
-		 		#DiagnosticReportNF(val['resource'])
+		 		t4 = threading.Thread(target = Condition, args = (val['resource'],))#
+		 		funcs_to_run.append(t4)
+		 		#Condition(val['resource'])
 		 	
 		 	if "Procedure" == val['resource']['resourceType']:
-		 		t4 = threading.Thread(target = Procedure, args = (val['resource'],))
-		 		funcs_to_run.append(t4)
+		 		t5 = threading.Thread(target = Procedure, args = (val['resource'],))
+		 		funcs_to_run.append(t5)
 		 		#Procedure(val['resource'])
+
+		 	if "AllergyIntolerance" == val['resource']['resourceType']:
+		 		t6 = threading.Thread(target = Allergy, args = (val['resource'],))
+		 		funcs_to_run.append(t6)
+		 		#Allergy(val['resource'])
+	
 			 			
 		 	if "Observation" == val['resource']['resourceType']:
-		 		t5 = threading.Thread(target = Observation, args = (val['resource'],))
-		 		funcs_to_run.append(t5)
+		 		t7 = threading.Thread(target = Observation, args = (val['resource'],))
+		 		funcs_to_run.append(t7)
 		 		#Observation(val['resource'])
 			 	print("--- %s seconds Resource Observation ---" % (time.time() - start_time))
 
@@ -507,6 +520,89 @@ def DiagnosticReportNF(responseMA):
 	print("--- %s seconds Resource DiagnosticReport alone ---" % (time.time() - start_time))	
 	return Response(responseMA)
 
+
+@api_view(['POST'])
+def ProcesarAllergyView(request):
+	responseMA = request.data
+	if (responseMA):
+		recurso = responseMA['resourceType']
+		if (recurso == 'AllergyIntolerance'):
+			Allergy(responseMA)
+			return Response(responseMA)
+		else:
+			return Response(status=status.HTTP_400_BAD_REQUEST)
+	else:
+		return Response(status=status.HTTP_400_BAD_REQUEST)
+
+def Allergy(responseMA):
+	start_time = time.time()
+
+	if 'code' in responseMA:
+		
+
+		if ('text' in responseMA['code'] and 'coding' not in responseMA['code']) \
+		or ('text' in responseMA['code'] and 'coding' in responseMA['code'] and 'system' not in responseMA['code']['coding'] ) \
+ 		or ('text' in responseMA['code'] and 'coding' in responseMA['code'] and 'system' in responseMA['code']['coding']):
+
+
+
+ 			for inx, ec in enumerate(responseMA['code']['coding']):
+ 				if 'system' in responseMA['code']['coding'][inx]:
+ 					if responseMA['code']['coding'][inx]['system'].lower().find("snomed") != -1:
+ 						return Response(responseMA)
+ 				
+ 		
+	 		frasePrueba = responseMA['code']['text'].lower()
+	 		stop_words = set(stopwords.words("spanish"))
+	 		frase2 = ""
+	 		tokens_frases1 = sent_tokenize(frasePrueba)
+	 		frases_preprocesadas = Parallel(n_jobs=-1, prefer="threads")(delayed(Preprocesamiento)(indx, frases) for indx, frases in enumerate(tokens_frases1))
+	 		frases_preprocesada_ordenada = Sort_0(frases_preprocesadas)
+	 		for indx4, item in enumerate(frases_preprocesada_ordenada):
+			  if indx4 == 0:
+			    frase2 = frase2 + item[1].capitalize()
+			  else:
+			    frase2 = frase2 + " "+ item[1].capitalize()
+	 		frasePrueba = copy.deepcopy(frase2)
+	 		
+	 		frasePrueba = frasePrueba.replace(', ', '. ').lower()
+	 		tokens_frases = sent_tokenize(frasePrueba)
+	 		fraseFinal = ""
+		
+	 		status_frases = []
+	 		try:
+		 		if tokens_frases:
+		 			status_frases = [ [indx, frases, 0]  for indx, frases in enumerate(tokens_frases)]
+		 			#status_frases = Parallel(n_jobs=-1, prefer="threads")(delayed(ProcesarOracionFrecuentes)(frases, indx, responseMA, start_time) for indx, frases in enumerate(tokens_frases))
+		 			
+		 		lista_unos = [i2 for indx2, i2 in enumerate(status_frases) if i2[2] == 1]
+		 		lista_final = []
+		 		lista_final = Parallel(n_jobs=-1, prefer="threads")(delayed(ProcesarOracion2)(i[1], indx, responseMA, start_time) for indx, i in enumerate(status_frases) if i[2] == 0)
+		 		lista_unida = lista_unos + lista_final
+		 		lista_unida = Sort_0(lista_unida)
+
+		 		for indx3, item in enumerate(lista_unida):
+		 		  if indx3 == 0:
+		 		    fraseFinal = fraseFinal + item[1].capitalize()
+		 		  else:
+		 		    fraseFinal = fraseFinal + " "+ item[1].capitalize()
+		 		
+	 		except Exception as e:
+	 			responseMA.update({"Advertencia" : "Algunos caracteres del texto no se pudieron procesar."})
+
+	 		if len(status_frases) != 0:
+		 		frase_original = responseMA['code']['text']
+		 		if frase_original[-1] != ".":
+		 			frase_original = frase_original + "."
+		 		if 'ConceptosSNOMED' in responseMA:
+			 			lista_conceptos_encontrados = responseMA['ConceptosSNOMED']
+			 			frase_con_ids = match_con_frase(frase_original, lista_conceptos_encontrados)
+			 			responseMA['code'].update( {"text": frase_con_ids} )
+			 	if 'text' in responseMA['code']:
+ 				    ExtendSnomed(responseMA, "AllergyIntolerance", "code")			
+	 		
+	print("--- %s seconds Resource Condition alone ---" % (time.time() - start_time))	
+	return Response(responseMA)
 
 @api_view(['POST'])
 def ProcesarConditionView(request):
@@ -644,6 +740,31 @@ def MedicationAdministration(responseMA):
 	print("--- %s seconds Resource MedicationAdministration ---" % (time.time() - start_time))
 
 	return Response(responseMA)
+
+
+@api_view(['POST'])
+def ProcesarMedicationRequestView(request):
+	responseMA = request.data
+	if (responseMA):
+		recurso = responseMA['resourceType']
+		if (recurso == 'MedicationRequest'):
+			MedicationRequest(responseMA)
+			return Response(responseMA)
+	else:
+		return Response(status=status.HTTP_400_BAD_REQUEST)
+
+def MedicationRequest(responseMA):
+    start_time = time.time()
+    if 'dosageInstruction' in responseMA:
+ 	    if 'text' in responseMA['dosageInstruction'][0]['route']:
+ 	       route=responseMA['dosageInstruction'][0]['route']
+ 	       ExtendSnomed(responseMA, "MedicationRequest", "route")
+    if 'text' in responseMA['dosageInstruction'][0]['method']:
+            method=responseMA['dosageInstruction'][0]['method']   
+	#print("--- %s seconds Resource MedicationAdministration ---" % (time.time() - start_time))
+    ExtendSnomed(responseMA, "MedicationRequest", "method")  
+    return Response(responseMA)
+		
 
 
 #funcion de Django Rest Framework con metodo POST que se utiliza para procesar el recurso Procedure (Cambio por recurso CarePlan)
@@ -818,20 +939,38 @@ def ExtendSnomed(responseMA, recurso, propiedad):
 			categoria = 6
 			parte_url = "conclusionCode"
 	#cambiar todo "conclusionCode" por elemento_a_buscar y "category_id" por "categoria" y añadir parte_url = "conclusionCode"
-
+ 
 	elif recurso == "Medication":
 		if propiedad == "code":
 			elemento_a_buscar = normalize(responseMA['code']['text']) #code de Medication es el elemento_a_buscar
 			categoria = 10
 			parte_url = "code"
-	#cambiar todo "code" por elemento_a_buscar y "category_id" por "categoria" y añadir parte_url = "code"
 
+	#cambiar todo "code" por elemento_a_buscar y "category_id" por "categoria" y añadir parte_url = "code"
 	elif recurso == "Procedure":
 		if propiedad == "code":
 			elemento_a_buscar = normalize(responseMA['code']['text']) #code de Procedure es el elemento_a_buscar
 			categoria = 4
 			parte_url = "code"
 	#cambiar todo "code" por elemento_a_buscar y "category_id" por "categoria" y añadir parte_url = "code"
+
+
+	elif recurso == "AllergyIntolerance":
+		if propiedad == "code":
+			elemento_a_buscar = normalize(responseMA['code']['text']) #code de AllergyIntolerance es el elemento_a_buscar
+			categoria = 6
+			parte_url = "code"
+
+	elif recurso == "MedicationRequest":
+	    if propiedad == "route":
+	       elemento_a_buscar = normalize (responseMA['dosageInstruction'][0]['route']['text'])	
+	       categoria= 8
+	       parte_url = "text"	
+
+	    if propiedad == "method":
+	       elemento_a_buscar = normalize (responseMA['dosageInstruction'][0]['method']['text'])	
+	       categoria= 8
+	       parte_url = "text"   				
 
 	elif recurso == "MedicationAdministration":
 		if propiedad == "method":
